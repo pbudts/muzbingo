@@ -1,0 +1,34 @@
+# MuzBingo card template: "Classic"
+#
+# Layout (A4 landscape, one card per page): background picture over the whole page,
+# logo top-left, game title top-centre, grid bottom-right, card number + date bottom-left.
+# Positions, sizes and colours are CSS variables at the top of style.css.
+
+name = "Classic"
+description = "A4 landscape, one card per page: background picture, logo top-left, title on top, grid bottom-right, card number and date bottom-left."
+
+entry = "cards.html.j2"
+
+# Keep these in sync with the @page rule in style.css.
+page_size = "A4"            # A4, A3, A5, Letter, ...
+orientation = "landscape"   # landscape | portrait
+
+# Title + artist characters that fit comfortably in one cell of a 5-column grid.
+# Longer texts get a smaller font, and the playlist editor flags them.
+max_chars = 44
+
+# Defaults, used when a game has no picture of its own.
+background = "background.svg"
+logo = "logo.svg"
+
+# Text printed on the cards, per card language.
+[labels.en]
+card = "Card"
+
+[labels.nl]
+card = "Kaart"
+
+# Fields: {day} {month} {year} {month_short} {month_long}; e.g. "{day:02d}/{month:02d}/{year}"
+[date_formats]
+en = "{day} {month_short} {year}"
+nl = "{day:02d}/{month:02d}/{year}"

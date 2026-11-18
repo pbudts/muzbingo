@@ -122,22 +122,24 @@ muzbingo/
 │   │   ├── base.py              # column detection, normalisation, dedupe
 │   │   ├── csv_importer.py
 │   │   └── excel_importer.py
+│   ├── cli.py                   # command-line interface (inspect / new / pdf / templates)
 │   ├── generator.py             # generate_cards(playlist, n_cards, rows, cols, seed)
 │   ├── patterns.py              # check_card(card, played, pattern) → bool + winning lines
 │   ├── storage.py               # save_game(game, path) / load_game(path)
 │   ├── render/
 │   │   ├── __init__.py
-│   │   ├── context.py           # Game → template context (resolves display texts)
+│   │   ├── __init__.py          # export_html(...) / export_pdf(...)
+│   │   ├── templates.py         # find, list and load card templates (template.toml)
+│   │   ├── context.py           # Game → template context (display texts, dates, font-size classes)
 │   │   ├── html.py              # Jinja2 environment, render_html(...)
-│   │   ├── pdf.py               # html → PDF via QWebEnginePage.printToPdf
-│   │   └── filters.py           # Jinja filters (font-size class from text length)
+│   │   └── pdf.py               # html file → PDF via QWebEnginePage.printToPdf
 │   ├── templates/               # bundled default templates
 │   │   ├── classic/
 │   │   │   ├── template.toml    # name, page size/orientation, labels (en/nl), grid placement
 │   │   │   ├── cards.html.j2
 │   │   │   ├── style.css
-│   │   │   ├── background.jpg   # default background picture
-│   │   │   └── logo.png         # default logo (replace with your own)
+│   │   │   ├── background.svg   # default background picture
+│   │   │   └── logo.svg         # placeholder logo (replace with your own)
 │   │   └── host_sheet/
 │   │       └── sheet.html.j2    # checklist of all songs for the host
 │   ├── i18n/
@@ -186,7 +188,7 @@ plan now uses **Qt WebEngine** (`QWebEnginePage.printToPdf`) instead:
 
 Trade-offs:
 - **Asynchronous API.** `printToPdf` needs a running Qt event loop. `render/pdf.py`
-  hides this behind a blocking `render_pdf(html, base_url, out_path)` that runs its
+  hides this behind a blocking `print_pdf(html_file, pdf_file, ...)` that runs its
   own `QEventLoop`.
 - **Command line and tests** need a `QApplication`. They run headless with
   `QT_QPA_PLATFORM=offscreen`.
@@ -349,13 +351,13 @@ Example:
 
 - **Background picture:**
   - Covers the full page (`background-size: cover`).
-  - Uses the game's own picture if set, otherwise the template's `background.jpg`, or
+  - Uses the game's own picture if set, otherwise the template's `background.svg`, or
     no picture at all.
   - It reaches the paper edges, but most office printers can't print the outer ~4 mm.
     For true edge-to-edge printing, use a print shop.
 - **Logo:**
   - Placed top-left at a fixed maximum height (about 30 mm), keeping its aspect ratio.
-  - Uses the game's own logo if set, otherwise the template's `logo.png`; it is left
+  - Uses the game's own logo if set, otherwise the template's `logo.svg`; it is left
     out if neither exists.
   - A transparent PNG or an SVG works best on top of the background picture.
 - **Cells:** each cell shows the song title and the artist on separate lines.
@@ -387,8 +389,9 @@ Example:
            "rows": [[{"title": "…", "artist": "…"}, …], …]}
       ],
       "date_text": "19/12/2026",                       # formatted event date, or ""
-      "background_url": "data:image/jpeg;base64,…",   # or a template-relative path, or None
-      "logo_url": "data:image/png;base64,…",          # or a template-relative path, or None
+      "background_url": "file:///…/background.svg",  # or None
+      "logo_url": "file:///…/logo.svg",              # or None
+      "template_url": "file:///…/templates/classic/", # for style.css, fonts, images
       "labels": {"card": "Kaart"},                     # from template.toml, in game.language
       "options": {"page_size": "A4", "orientation": "landscape"},
   }
@@ -399,8 +402,13 @@ Example:
     "Kaart", English cards print "Card".
 - **Rendering:**
   - The HTML is built with `Environment(loader=FileSystemLoader(template_dir), autoescape=True)`.
-  - It is then printed to PDF with Qt WebEngine (3.3), with the base URL set to the
-    template folder so relative CSS, image and font links work.
+  - The HTML is written to a temporary file and printed to PDF with Qt WebEngine (3.3).
+    Loading from a file avoids the 2 MB limit of `QWebEnginePage.setHtml`.
+  - Templates link their own files through `template_url`, e.g.
+    `href="{{ template_url }}style.css"`.
+  - All pictures are referenced as absolute `file://` URLs, never as embedded data
+    URLs. A game's own pictures are first written next to the HTML file. This keeps
+    the HTML small, however many cards there are.
   - All cards go into one HTML document with `break-after: page`, giving one PDF with
     one page per card.
   - The page uses `@page { size: A4 landscape; margin: 0 }`, so the background
@@ -411,38 +419,14 @@ Example:
     many cards.
 - **Long text:**
   - CSS uses `overflow-wrap` and hyphenation.
-  - A `fit` filter picks a font-size class from the text length.
+  - Each cell gets a font-size class (`size-normal`, `size-small`, `size-tiny`) based on
+    the title + artist length compared with the template's `max_chars`.
   - The edit mode (4.2) lets you shorten what still doesn't fit.
 - **Extra outputs:**
   - **Host sheet:** a PDF with the full playlist as a checklist, sorted or in play order.
   - **HTML export:** for debugging templates in a browser.
 
-Minimal `cards.html.j2` sketch:
-```html
-<!doctype html>
-<html lang="{{ game.language }}"><head><meta charset="utf-8"><link rel="stylesheet" href="style.css"></head>
-<body>
-{% for card in cards %}
-  <section class="card"
-           {% if background_url %}style="background-image: url('{{ background_url }}')"{% endif %}>
-    {% if logo_url %}<img class="logo" src="{{ logo_url }}" alt="">{% endif %}
-    <h1 class="title">{{ game.title }}</h1>
-    <div class="grid" style="--rows: {{ game.rows }}; --cols: {{ game.cols }}">
-      {% for row in card.rows %}{% for cell in row %}
-        <div class="cell {{ (cell.title ~ cell.artist) | fit }}">
-          <div class="song-title">{{ cell.title }}</div>
-          <div class="song-artist">{{ cell.artist }}</div>
-        </div>
-      {% endfor %}{% endfor %}
-    </div>
-    <footer class="meta">
-      <span class="no">{{ labels.card }} {{ card.number }}</span>
-      {% if date_text %}<span class="date">{{ date_text }}</span>{% endif %}
-    </footer>
-  </section>
-{% endfor %}
-</body></html>
-```
+The full template is in `src/muzbingo/templates/classic/cards.html.j2`.
 
 ### 4.7 GUI (PySide6)
 **Main window**, as tabs or a splitter:
@@ -545,7 +529,7 @@ Play:      Host view: tick songs as played; enter card # → one line / two line
 | Phase | Deliverable |
 |-------|-------------|
 | **0 — Skeleton** | `pyproject.toml`, package layout, models, `paths.py`, pytest set up |
-| **1 — Core** | CSV and Excel importers, generator (rows × cols), pattern checker, JSON storage, Jinja → HTML → PDF renderer, `classic` template (1 card/A4, 4×5 and 5×5), tests. Small CLI (`muzbingo generate playlist.csv --grid 4x5 --cards 40 -o cards.pdf`) |
+| **1 — Core** | CSV and Excel importers, generator (rows × cols), pattern checker, JSON storage, Jinja → HTML → PDF renderer, `classic` template (1 card/A4, 4×5 and 5×5), tests. Small CLI (`muzbingo new playlist.csv --grid 4x5 --cards 40 -o game.muzbingo`, `muzbingo pdf game.muzbingo -o cards.pdf`) |
 | **2 — GUI MVP** | Main window: import, playlist table with edit mode, game settings, generate, save/open, export PDF, live preview |
 | **3 — Polish** | Column-mapping dialog, length warnings and bulk cleanup, undo/redo, user templates folder, host sheet |
 | **4 — Host mode** | Mark played songs; verify a card number for one line / two lines / full card |

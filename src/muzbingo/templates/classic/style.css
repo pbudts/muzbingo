@@ -1,0 +1,132 @@
+/* MuzBingo "Classic" template — A4 landscape, one card per page.
+   Tweak the variables below to move or restyle elements. */
+
+@page { size: A4 landscape; margin: 0; }   /* keep in sync with template.toml */
+
+:root {
+  --page-w: 297mm;
+  --page-h: 210mm;
+  --margin: 12mm;                  /* distance of logo, grid and footer from the page edge */
+
+  /* Grid: cells grow up to the max size, but the grid never exceeds the max area. */
+  --grid-max-w: 205mm;
+  --grid-max-h: 140mm;
+  --cell-max-w: 42mm;
+  --cell-max-h: 33mm;
+  --gap: 1.2mm;
+
+  --logo-max-h: 30mm;
+  --logo-max-w: 70mm;
+
+  --font: "Segoe UI", "Helvetica Neue", Arial, "Liberation Sans", "DejaVu Sans", sans-serif;
+  --ink: #1d1530;                  /* main text colour */
+  --ink-soft: #4a3d66;             /* artist text */
+  --accent: #d1006f;               /* card number */
+  --title-color: #ffffff;
+  --panel: rgba(20, 10, 45, 0.55); /* dark panel behind the grid */
+  --cell-bg: rgba(255, 255, 255, 0.92);
+  --cell-border: rgba(30, 20, 60, 0.45);
+  --page-bg: #2a1a5e;              /* shown if there is no background picture */
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.card {
+  position: relative;
+  width: var(--page-w);
+  height: var(--page-h);
+  overflow: hidden;
+  break-after: page;
+  background-color: var(--page-bg);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+.card:last-child { break-after: auto; }
+
+/* Logo: top-left */
+.logo {
+  position: absolute;
+  top: var(--margin);
+  left: var(--margin);
+  max-height: var(--logo-max-h);
+  max-width: var(--logo-max-w);
+  object-fit: contain;
+}
+
+/* Game title: top, centred on the page */
+.game-title {
+  position: absolute;
+  top: calc(var(--margin) + 3mm);
+  left: calc(var(--margin) + var(--logo-max-w) + 4mm);
+  right: calc(var(--margin) + var(--logo-max-w) + 4mm);
+  margin: 0;
+  text-align: center;
+  color: var(--title-color);
+  font-size: 28pt;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: 0.5pt;
+  text-shadow: 0 0.6mm 2mm rgba(0, 0, 0, 0.45);
+}
+
+/* Grid: bottom-right */
+.grid {
+  --cell-w: min(var(--cell-max-w), calc((var(--grid-max-w) - (var(--cols) - 1) * var(--gap)) / var(--cols)));
+  --cell-h: min(var(--cell-max-h), calc((var(--grid-max-h) - (var(--rows) - 1) * var(--gap)) / var(--rows)));
+  position: absolute;
+  right: var(--margin);
+  bottom: var(--margin);
+  display: grid;
+  grid-template-columns: repeat(var(--cols), var(--cell-w));
+  grid-template-rows: repeat(var(--rows), var(--cell-h));
+  gap: var(--gap);
+  padding: 2mm;
+  background: var(--panel);
+  border-radius: 3mm;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5mm 2mm;
+  overflow: hidden;
+  text-align: center;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  background: var(--cell-bg);
+  border: 0.3mm solid var(--cell-border);
+  border-radius: 1.5mm;
+}
+.song-title  { font-weight: 700; font-size: 11pt; }
+.song-artist { font-size: 9pt; margin-top: 1.2mm; color: var(--ink-soft); }
+
+/* Smaller text for longer titles/artists (see max_chars in template.toml) */
+.size-small .song-title  { font-size: 9.5pt; }
+.size-small .song-artist { font-size: 8pt; }
+.size-tiny .song-title   { font-size: 8pt; }
+.size-tiny .song-artist  { font-size: 7pt; margin-top: 0.8mm; }
+
+/* Card number and date: bottom-left */
+.meta {
+  position: absolute;
+  left: var(--margin);
+  bottom: var(--margin);
+  padding: 2mm 4mm;
+  border-radius: 2mm;
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 12pt;
+  font-weight: 600;
+}
+.meta .card-no { color: var(--accent); font-weight: 800; }
+.meta .sep { margin: 0 2mm; opacity: 0.5; }

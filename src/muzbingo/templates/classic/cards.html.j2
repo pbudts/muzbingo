@@ -1,0 +1,47 @@
+<!doctype html>
+{#
+  MuzBingo "Classic" card template.
+
+  Available data (prepared by muzbingo.render.context):
+    game          title, rows, cols, event_date, language
+    cards         list of {number, rows: [[{title, artist, size}]]}
+                  size is "normal", "small" or "tiny" depending on the text length
+    date_text     event date formatted for the card language ("" if no date)
+    labels        printed texts in the card language, e.g. labels.card
+    background_url, logo_url   picture URLs, or none
+    template_url  URL of this folder (ends with "/"), for CSS, fonts and images
+#}
+<html lang="{{ game.language }}">
+<head>
+<meta charset="utf-8">
+<title>{{ game.title }}</title>
+<link rel="stylesheet" href="{{ template_url }}style.css">
+{% if background_url %}
+<style>.card { background-image: url("{{ background_url }}"); }</style>
+{% endif %}
+</head>
+<body>
+{% for card in cards %}
+<section class="card">
+  {% if logo_url %}<img class="logo" src="{{ logo_url }}" alt="">{% endif %}
+  <h1 class="game-title">{{ game.title }}</h1>
+
+  <div class="grid" style="--rows: {{ game.rows }}; --cols: {{ game.cols }};">
+    {% for row in card.rows %}
+    {% for cell in row %}
+    <div class="cell size-{{ cell.size }}">
+      <div class="song-title">{{ cell.title }}</div>
+      <div class="song-artist">{{ cell.artist }}</div>
+    </div>
+    {% endfor %}
+    {% endfor %}
+  </div>
+
+  <footer class="meta">
+    <span class="card-no">{{ labels.card }} {{ card.number }}</span>
+    {% if date_text %}<span class="sep">·</span><span class="date">{{ date_text }}</span>{% endif %}
+  </footer>
+</section>
+{% endfor %}
+</body>
+</html>

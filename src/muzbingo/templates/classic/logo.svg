@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 60" width="140" height="60">
+  <!-- Placeholder logo. Replace it with your own (PNG or SVG), or set a logo per game. -->
+  <rect x="1" y="1" width="138" height="58" rx="8" fill="#ffffff" fill-opacity="0.92"
+        stroke="#d1006f" stroke-width="1.5" stroke-dasharray="5 3"/>
+  <text x="20" y="40" font-size="28" fill="#d1006f" font-family="DejaVu Sans, Segoe UI Symbol, Arial, sans-serif">♫</text>
+  <text x="52" y="28" font-size="13" font-weight="700" fill="#1d1530" font-family="Segoe UI, Arial, Liberation Sans, sans-serif">YOUR</text>
+  <text x="52" y="44" font-size="13" font-weight="700" fill="#1d1530" font-family="Segoe UI, Arial, Liberation Sans, sans-serif">LOGO</text>
+</svg>
