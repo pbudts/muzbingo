@@ -18,12 +18,28 @@ Requires Python 3.11 or newer.
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
+pip install -r requirements-dev.txt
+pip install -e . --no-deps
 pytest
 ```
 
-On Debian/Ubuntu, `python3 -m venv` needs the `python3-venv` package
-(`sudo apt install python3.12-venv`).
+- `requirements.txt` holds the exact runtime versions and `requirements-dev.txt` adds
+  the test tools. The loose version ranges are in `pyproject.toml`; `pip install -e ".[dev]"`
+  installs the latest matching versions instead of the pinned ones.
+- **Linux system packages.** On Debian/Ubuntu, `python3 -m venv` needs `python3-venv`.
+  Qt also needs system libraries for graphics and for the PDF engine, plus some fonts.
+  Desktop installs usually have these already; minimal installs, servers and WSL
+  often don't:
+
+  ```bash
+  sudo apt install python3.12-venv \
+      libgl1 libegl1 libgbm1 libasound2t64 libxkbcommon-x11-0 libxkbfile1 \
+      libx11-xcb1 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libxtst6 \
+      libxcb-cursor0 libxcb-dri3-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 \
+      libxcb-randr0 libxcb-render0 libxcb-render-util0 libxcb-shape0 libxcb-shm0 \
+      libxcb-sync1 libxcb-util1 libxcb-xfixes0 libxcb-xkb1 \
+      fonts-dejavu-core fonts-liberation
+  ```
 
 ## Command-line use
 
