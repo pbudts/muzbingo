@@ -9,7 +9,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the design and roadmap.
 
 ## Status
 
-Phase 1 (core + command-line tool) is in progress. The desktop GUI comes in phase 2.
+Phase 1 (core + command-line tool) is done. Next is phase 2: a web UI that runs locally — in its own app window for end-users, or in a browser with `muzbingo serve` during development.
 
 ## Setup (development)
 
