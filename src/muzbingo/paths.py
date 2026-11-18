@@ -61,3 +61,11 @@ def user_templates_dir() -> Path:
 def template_search_path() -> list[Path]:
     """User templates first, so a user template can override a bundled one by name."""
     return [user_templates_dir(), bundled_templates_dir()]
+
+
+def games_dir(data_dir: Path | None = None) -> Path:
+    return (data_dir or user_data_dir()) / "games"
+
+
+def settings_file(data_dir: Path | None = None) -> Path:
+    return (data_dir or user_data_dir()) / "settings.json"

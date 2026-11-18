@@ -44,6 +44,7 @@ Game
 ├── event_date: date | None    date of the event, printed on the cards
 ├── rows: int                  e.g. 4
 ├── cols: int                  e.g. 5      → "4×5" = 4 rows × 5 columns
+├── n_cards: int               how many cards to generate
 ├── seed: int                  RNG seed, so a card set can be regenerated exactly
 ├── background: Image | None   optional per-game background picture (overrides the template's default)
 ├── logo: Image | None         optional per-game logo, top-left (overrides the template's default)
@@ -52,7 +53,9 @@ Game
 ├── created_at / updated_at
 ├── playlist: list[Song]
 ├── cards: list[Card]
-└── played: list[song_id]      songs played so far, in order (host mode)
+├── played: list[song_id]      songs played so far, in order (host mode)
+└── cards_basis: str | None    fingerprint of grid, card count, seed and song ids when the cards
+                               were generated; differs from the current one → cards are out of date
 
 Song
 ├── id: str                    stable id (Spotify URI if available, otherwise a hash of the original artist+title)
@@ -130,7 +133,7 @@ muzbingo/
 │   ├── cli.py                   # commands: (none) = app window, serve, inspect, new, pdf, templates
 │   ├── models.py                # Game, Song, Card, Image dataclasses + (de)serialization
 │   ├── paths.py                 # app/data/template/library locations, portable-mode detection
-│   ├── settings.py              # user settings (UI language, last template, …) as JSON
+│   ├── settings.py              # user settings (UI language, last template, …) as JSON (phase 5)
 │   ├── importers/
 │   │   ├── __init__.py          # import_playlist(path, mapping=None) dispatcher
 │   │   ├── base.py              # column detection, normalisation, dedupe
@@ -150,16 +153,20 @@ muzbingo/
 │   │   ├── game_service.py      # use cases on one game, used by the UI (and tests)
 │   │   └── pdf_service.py       # queues PDF jobs onto the Qt thread, returns awaitable results
 │   ├── ui/
-│   │   ├── server.py            # create the app, auth token, start/stop uvicorn in a thread
-│   │   ├── routes.py            # plain HTTP routes: preview, template assets, downloads
+│   │   ├── server.py            # build the app, start/stop uvicorn in a thread, `serve`
+│   │   ├── app.py               # setup(): register pages and routes (also used by UI tests)
+│   │   ├── auth.py              # token → cookie login, Host header check
+│   │   ├── context.py           # the running app's library and PDF service
+│   │   ├── routes.py            # plain HTTP routes: card preview, template assets, game pictures
+│   │   ├── layout.py            # header bar and small helpers
 │   │   ├── pages/
 │   │   │   ├── library.py       # start page: list, new, open, duplicate, delete, import/export games
 │   │   │   └── game.py          # game page with tabs (settings, playlist, cards, host)
 │   │   └── components/
-│   │       ├── playlist_table.py   # editable table with length warnings
-│   │       ├── import_dialog.py    # upload + column mapping
-│   │       ├── card_preview.py     # iframe showing one rendered card
-│   │       └── host_panel.py       # mark played songs, check a card number
+│   │       ├── settings_panel.py   # title, date, grid, cards, seed, template, pictures
+│   │       ├── playlist_panel.py   # editable table with length warnings + import dialog
+│   │       ├── cards_panel.py      # generate, preview (iframe), download PDF
+│   │       └── host_panel.py       # mark played songs, check a card number (phase 4)
 │   ├── desktop/
 │   │   └── window.py            # QMainWindow + QWebEngineView pointing at the local server
 │   ├── i18n/
@@ -177,8 +184,9 @@ muzbingo/
 └── tests/
     ├── test_importers.py, test_generator.py, test_patterns.py,
     ├── test_storage.py, test_render.py
-    ├── test_library.py, test_game_service.py
-    └── test_ui.py               # NiceGUI's simulated-user tests, no browser needed
+    ├── test_library.py, test_game_service.py, test_auth.py
+    ├── test_ui.py               # NiceGUI's simulated-user tests, no browser needed
+    └── ui/main.py               # entry point the UI tests load
 ```
 
 ### 3.2 Dependencies
@@ -189,7 +197,7 @@ muzbingo/
 | `PySide6` | Qt WebEngine: PDF printing, and the app window for end-users |
 | `openpyxl` | Read `.xlsx` |
 | `Jinja2` | HTML templating (cards; already a NiceGUI dependency as well) |
-| `pytest` | Tests (dev) |
+| `pytest`, `pytest-asyncio` | Tests (dev) |
 | `Babel` | Extract and compile translations (dev) |
 | `pyinstaller` | Build the portable app (dev) |
 
@@ -649,7 +657,7 @@ Share:     My games: Download → game.muzbingo (all data incl. pictures) → Im
 |-------|-------------|--------|
 | **0 — Skeleton** | `pyproject.toml`, package layout, models, `paths.py`, pytest set up | ✅ done |
 | **1 — Core** | CSV and Excel importers, generator (rows × cols), pattern checker, JSON storage, Jinja → HTML → PDF renderer, `classic` template (1 card/A4, 4×5 and 5×5), tests. Small CLI (`muzbingo new playlist.csv --grid 4x5 --cards 40 -o game.muzbingo`, `muzbingo pdf game.muzbingo -o cards.pdf`) | ✅ done |
-| **2 — Web UI MVP** | Services (library with autosave, game service, PDF service on the Qt thread), `muzbingo serve`, URL resolver for previews, start page, game page (settings, playlist table with editing, generate, preview, download PDF), token auth, UI tests | |
+| **2 — Web UI MVP** | Services (library with autosave, game service, PDF service on the Qt thread), `muzbingo serve`, URL resolver for previews, start page, game page (settings, playlist table with editing, generate, preview, download PDF), token auth, UI tests | ✅ done |
 | **3 — Polish** | Column-mapping dialog, length warnings and bulk cleanup, undo, image upload with downscaling, user templates folder, host sheet | |
 | **4 — Host mode** | Mark played songs; verify a card number for one line / two lines / full card | |
 | **5 — Desktop & i18n** | App window (`desktop/window.py`) with native downloads; all strings in `_()` from the start; Dutch `.po` translation and language switch | |

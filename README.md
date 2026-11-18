@@ -9,7 +9,10 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the design and roadmap.
 
 ## Status
 
-Phase 1 (core + command-line tool) is done. Next is phase 2: a web UI that runs locally — in its own app window for end-users, or in a browser with `muzbingo serve` during development.
+- Phase 1 (core + command-line tool): done.
+- Phase 2 (web UI): first version done. It covers the "My games" library, game settings,
+  the playlist editor, card generation, card preview and PDF download. It runs in a
+  browser with `muzbingo serve`. The app window for end-users follows in phase 5.
 
 ## Setup (development)
 
@@ -41,6 +44,30 @@ pytest
       fonts-dejavu-core fonts-liberation
   ```
 
+## Using the web UI
+
+```bash
+muzbingo serve
+```
+
+This prints a link like `http://localhost:8080/?token=…`. Open it in a browser; the
+token logs you in and is then remembered in a cookie. Each start makes a new token.
+
+The server only accepts connections from the computer it runs on. To use it from
+another computer, for example when developing over SSH:
+
+- **VS Code Remote-SSH** forwards the port automatically. Open the **Ports** panel (next
+  to Terminal) and click the globe icon for port 8080, or ctrl+click the link in the
+  terminal.
+- **Plain SSH**: `ssh -L 8080:localhost:8080 <dev machine>`, then open the printed link
+  on your own computer.
+- **On your network** (e.g. to try it on a tablet): `muzbingo serve --host 0.0.0.0`.
+  The token is still required, but anyone on the network can reach the server.
+
+Options: `--port 9000` uses another port; `--data-dir ./testdata` keeps games in another
+folder, which is handy for testing. By default games are stored in
+`~/.local/share/MuzBingo/games/` (Linux) or `%APPDATA%\MuzBingo\games\` (Windows).
+
 ## Command-line use
 
 ```bash
@@ -60,6 +87,15 @@ muzbingo pdf kerstfeest.muzbingo --html -o kerstfeest.html
 
 If the title/artist columns aren't detected automatically, pick them with
 `--title-col` and `--artist-col`.
+
+## Tests
+
+```bash
+pytest
+```
+
+The UI tests use NiceGUI's simulated user (`tests/test_ui.py`), so they need no browser.
+The PDF tests use Qt WebEngine offscreen.
 
 ## Card templates
 

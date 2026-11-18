@@ -15,7 +15,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from muzbingo.generator import GenerationError, generate_cards
+from muzbingo.generator import GenerationError, generate_for_game
 from muzbingo.importers import ColumnMapping, MappingRequired, PlaylistImportError, import_playlist
 from muzbingo.models import Game, Image, new_seed
 from muzbingo.storage import FILE_EXTENSION, StorageError, load_game, save_game
@@ -70,6 +70,7 @@ def cmd_new(args: argparse.Namespace) -> int:
         title=args.title,
         rows=rows,
         cols=cols,
+        n_cards=args.cards,
         event_date=args.date,
         seed=args.seed if args.seed is not None else new_seed(),
         language=args.language,
@@ -78,7 +79,7 @@ def cmd_new(args: argparse.Namespace) -> int:
         logo=Image.from_file(args.logo) if args.logo else None,
         playlist=result.songs,
     )
-    game.cards = generate_cards(game.playlist, args.cards, rows, cols, game.seed)
+    generate_for_game(game)
     out = Path(args.output)
     if out.suffix != FILE_EXTENSION:
         out = out.with_name(out.name + FILE_EXTENSION)
@@ -102,6 +103,12 @@ def cmd_pdf(args: argparse.Namespace) -> int:
         out = export_pdf(game, args.output, template)
     print(f"Wrote {out} ({len(game.cards)} cards)")
     return 0
+
+
+def cmd_serve(args: argparse.Namespace) -> int:
+    from muzbingo.ui.server import serve
+
+    return serve(args.host, args.port, Path(args.data_dir) if args.data_dir else None)
 
 
 def cmd_templates(args: argparse.Namespace) -> int:
@@ -146,6 +153,13 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--template", help="use another template than the one saved in the game")
     p.add_argument("--html", action="store_true", help="write HTML instead of PDF (for template work)")
     p.set_defaults(func=cmd_pdf)
+
+    p = sub.add_parser("serve", help="run the app for use in a web browser")
+    p.add_argument("--host", default="127.0.0.1",
+                   help="address to listen on (default: 127.0.0.1, only this computer)")
+    p.add_argument("--port", type=int, default=8080, help="port (default: 8080)")
+    p.add_argument("--data-dir", help="folder for games and settings (default: the user data folder)")
+    p.set_defaults(func=cmd_serve)
 
     p = sub.add_parser("templates", help="list the available card templates")
     p.set_defaults(func=cmd_templates)

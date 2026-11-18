@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Any
 
-from muzbingo.models import Game, Song
+from muzbingo.models import Card, Game, Song
 from muzbingo.render.templates import CardTemplate
 
 MONTHS_SHORT = {
@@ -77,16 +77,20 @@ def build_context(
     game: Game,
     template: CardTemplate,
     *,
+    cards: list[Card] | None = None,
+    template_url: str = "",
     background_url: str | None = None,
     logo_url: str | None = None,
 ) -> dict[str, Any]:
-    if not game.cards:
+    """Template data for ``cards`` (default: all cards of the game)."""
+    selected = game.cards if cards is None else cards
+    if not selected:
         raise RenderError("There are no cards to print; generate the cards first")
 
     songs = game.songs_by_id()
     budget = template.char_budget(game.cols)
-    cards = []
-    for card in game.cards:
+    rendered = []
+    for card in selected:
         rows = []
         for row in card.cells:
             cells = []
@@ -105,7 +109,7 @@ def build_context(
                     }
                 )
             rows.append(cells)
-        cards.append({"number": card.number, "rows": rows})
+        rendered.append({"number": card.number, "rows": rows})
 
     return {
         "game": {
@@ -115,11 +119,11 @@ def build_context(
             "event_date": game.event_date,
             "language": game.language,
         },
-        "cards": cards,
+        "cards": rendered,
         "date_text": format_date(game.event_date, game.language, template.date_formats),
         "labels": template.label_set(game.language),
         "background_url": background_url,
         "logo_url": logo_url,
-        "template_url": template.path.resolve().as_uri() + "/",
+        "template_url": template_url or template.path.resolve().as_uri() + "/",
         "options": {"page_size": template.page_size, "orientation": template.orientation},
     }

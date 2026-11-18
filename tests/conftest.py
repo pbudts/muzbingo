@@ -14,10 +14,10 @@ def songs() -> list[Song]:
 
 @pytest.fixture
 def game(songs) -> Game:
-    from muzbingo.generator import generate_cards
+    from muzbingo.generator import generate_for_game
 
-    g = Game(title="Test Bingo", rows=4, cols=5, seed=42, playlist=songs)
-    g.cards = generate_cards(g.playlist, 5, g.rows, g.cols, g.seed)
+    g = Game(title="Test Bingo", rows=4, cols=5, n_cards=5, seed=42, playlist=songs)
+    generate_for_game(g)
     return g
 
 

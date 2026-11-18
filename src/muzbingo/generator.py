@@ -11,7 +11,7 @@ import math
 import random
 from collections.abc import Sequence
 
-from muzbingo.models import Card, Song
+from muzbingo.models import Card, Game, Song
 
 MAX_RETRIES = 1000
 
@@ -81,3 +81,10 @@ def generate_cards(
         cells = [chosen[r * cols : (r + 1) * cols] for r in range(rows)]
         cards.append(Card(number=len(cards) + 1, cells=cells))
     return cards
+
+
+def generate_for_game(game: Game) -> list[Card]:
+    """Generate ``game.n_cards`` cards from the game's settings and store them in the game."""
+    game.cards = generate_cards(game.playlist, game.n_cards, game.rows, game.cols, game.seed)
+    game.cards_basis = game.basis()
+    return game.cards

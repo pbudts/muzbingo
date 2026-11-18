@@ -7,11 +7,14 @@ from pathlib import Path
 
 from muzbingo.models import Game
 from muzbingo.render.context import RenderError, format_date, is_too_long
-from muzbingo.render.html import render_html
+from muzbingo.render.html import AssetUrls, FileUrls, HttpUrls, render_html
 from muzbingo.render.templates import CardTemplate, TemplateError, list_templates, load_template
 
 __all__ = [
+    "AssetUrls",
     "CardTemplate",
+    "FileUrls",
+    "HttpUrls",
     "RenderError",
     "TemplateError",
     "export_html",
@@ -31,7 +34,8 @@ def export_html(game: Game, html_path: str | Path, template: CardTemplate | None
     """
     html_path = Path(html_path).resolve()
     template = template or load_template(game.template)
-    html = render_html(game, template, html_path.with_name(html_path.stem + "_files"))
+    urls = FileUrls(html_path.with_name(html_path.stem + "_files"))
+    html = render_html(game, template, urls)
     html_path.write_text(html, encoding="utf-8")
     return html_path
 

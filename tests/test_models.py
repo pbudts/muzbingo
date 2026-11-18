@@ -47,3 +47,24 @@ def test_image_from_file(tmp_path):
     assert image.mime == "image/jpeg"
     assert image.suffix == ".jpg"
     assert image.data == b"jpegdata"
+
+
+def test_cards_outdated(game):
+    assert not game.cards_outdated
+    game.title = "Other title"
+    game.playlist[0].display_title = "Short"
+    assert not game.cards_outdated  # looks only
+    game.seed += 1
+    assert game.cards_outdated
+    game.seed -= 1
+    assert not game.cards_outdated
+    game.playlist.pop()
+    assert game.cards_outdated
+
+
+def test_old_files_without_new_fields(game):
+    data = game.to_dict()
+    del data["n_cards"], data["cards_basis"]
+    copy = Game.from_dict(data)
+    assert copy.n_cards == len(game.cards)
+    assert copy.cards_outdated  # unknown basis: offer to regenerate

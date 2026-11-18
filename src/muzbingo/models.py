@@ -38,7 +38,7 @@ def new_seed() -> int:
 
 
 def utc_now() -> datetime:
-    return datetime.now(timezone.utc).replace(microsecond=0)
+    return datetime.now(timezone.utc)
 
 
 @dataclass
@@ -140,6 +140,7 @@ class Game:
     title: str = "Music Bingo"
     rows: int = 4
     cols: int = 5
+    n_cards: int = 30
     event_date: date | None = None
     seed: int = field(default_factory=new_seed)
     language: str = "en"
@@ -149,6 +150,7 @@ class Game:
     playlist: list[Song] = field(default_factory=list)
     cards: list[Card] = field(default_factory=list)
     played: list[str] = field(default_factory=list)
+    cards_basis: str | None = None  # basis() at the moment the cards were generated
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     created_at: datetime = field(default_factory=utc_now)
     updated_at: datetime = field(default_factory=utc_now)
@@ -163,6 +165,21 @@ class Game:
     def card(self, number: int) -> Card | None:
         return next((c for c in self.cards if c.number == number), None)
 
+    def basis(self) -> str:
+        """Fingerprint of everything the cards depend on.
+
+        Display texts, title, date, pictures and template are not part of it: changing
+        those only changes how the cards look, not which songs are on them.
+        """
+        ids = "\x1f".join(sorted(s.id for s in self.playlist))
+        key = f"{self.rows}x{self.cols}|{self.n_cards}|{self.seed}|{ids}"
+        return hashlib.sha1(key.encode("utf-8")).hexdigest()[:16]
+
+    @property
+    def cards_outdated(self) -> bool:
+        """True if cards exist but the songs, grid, card count or seed changed since."""
+        return bool(self.cards) and self.cards_basis != self.basis()
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "format_version": FORMAT_VERSION,
@@ -171,6 +188,7 @@ class Game:
             "event_date": self.event_date.isoformat() if self.event_date else None,
             "rows": self.rows,
             "cols": self.cols,
+            "n_cards": self.n_cards,
             "seed": self.seed,
             "language": self.language,
             "template": self.template,
@@ -181,6 +199,7 @@ class Game:
             "playlist": [s.to_dict() for s in self.playlist],
             "cards": [c.to_dict() for c in self.cards],
             "played": list(self.played),
+            "cards_basis": self.cards_basis,
         }
 
     @classmethod
@@ -191,6 +210,7 @@ class Game:
             event_date=date.fromisoformat(d["event_date"]) if d.get("event_date") else None,
             rows=int(d["rows"]),
             cols=int(d["cols"]),
+            n_cards=int(d.get("n_cards") or len(d.get("cards", [])) or 30),
             seed=int(d["seed"]),
             language=d.get("language", "en"),
             template=d.get("template", "classic"),
@@ -201,4 +221,5 @@ class Game:
             playlist=[Song.from_dict(s) for s in d.get("playlist", [])],
             cards=[Card.from_dict(c) for c in d.get("cards", [])],
             played=list(d.get("played", [])),
+            cards_basis=d.get("cards_basis"),
         )
