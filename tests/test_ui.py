@@ -95,6 +95,14 @@ async def test_edit_song_in_table(user: User, library, saved_game):
     assert library.load(saved_game.id).playlist[0].display_title == "Short"
 
 
+async def test_only_too_long_empty_text(user: User, saved_game):
+    await user.open(f"/game/{saved_game.id}?tab=playlist")
+    grid = user.find(marker="playlist-grid").elements.pop()
+    user.find(marker="only-too-long").click()
+    assert grid.options["rowData"] == []  # the sample songs all fit
+    assert "All texts fit" in grid.options["overlayNoRowsTemplate"]
+
+
 async def test_preview_route(user: User, library, saved_game):
     from muzbingo.generator import generate_for_game
 

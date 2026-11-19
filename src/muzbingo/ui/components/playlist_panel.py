@@ -63,8 +63,14 @@ def playlist_panel(page: GamePage) -> None:
             color = "bg-red-50 text-red-900" if not s.can_generate else "bg-amber-50 text-amber-900"
             ui.label(s.message).classes(f"w-full rounded px-3 py-2 text-sm {color}")
 
+    def empty_text() -> str:
+        if service.game.playlist and state["only_warnings"]:
+            return _('All texts fit on the cards. Switch off "Only songs that are too long" to see all songs.')
+        return _("No songs yet. Import a playlist to get started.")
+
     def refresh() -> None:
         grid.options["rowData"] = row_data()
+        grid.options["overlayNoRowsTemplate"] = empty_text()
         grid.update()
         status.refresh()
 
@@ -147,7 +153,9 @@ def playlist_panel(page: GamePage) -> None:
             )
             ui.button(_("Delete"), icon="delete", on_click=delete_selected).props("flat")
             ui.space()
-            ui.switch(_("Only songs that are too long"), on_change=lambda e: toggle_warnings(e.value))
+            ui.switch(_("Only songs that are too long"), on_change=lambda e: toggle_warnings(e.value)).mark(
+                "only-too-long"
+            )
 
         grid = ui.aggrid(
             {
@@ -167,7 +175,7 @@ def playlist_panel(page: GamePage) -> None:
                 ":getRowId": "params => params.data.id",
                 "stopEditingWhenCellsLoseFocus": True,
                 "singleClickEdit": True,
-                "overlayNoRowsTemplate": _("No songs yet. Import a playlist to get started."),
+                "overlayNoRowsTemplate": empty_text(),
             },
             theme="quartz",
         ).classes("w-full").style("height: 60vh").mark("playlist-grid")
