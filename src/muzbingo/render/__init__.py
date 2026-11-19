@@ -7,6 +7,7 @@ from pathlib import Path
 
 from muzbingo.models import Game
 from muzbingo.render.context import RenderError, format_date, is_too_long
+from muzbingo.render.host_sheet import HostOrder, render_host_sheet
 from muzbingo.render.html import AssetUrls, FileUrls, HttpUrls, render_html
 from muzbingo.render.templates import CardTemplate, TemplateError, list_templates, load_template
 
@@ -14,15 +15,18 @@ __all__ = [
     "AssetUrls",
     "CardTemplate",
     "FileUrls",
+    "HostOrder",
     "HttpUrls",
     "RenderError",
     "TemplateError",
+    "export_host_sheet",
     "export_html",
     "export_pdf",
     "format_date",
     "is_too_long",
     "list_templates",
     "load_template",
+    "render_host_sheet",
     "render_html",
 ]
 
@@ -54,4 +58,17 @@ def export_pdf(game: Game, pdf_path: str | Path, template: CardTemplate | None =
             page_size=template.page_size,
             orientation=template.orientation,
         )
+    return pdf_path
+
+
+def export_host_sheet(game: Game, pdf_path: str | Path, order: HostOrder | str = HostOrder.PLAYLIST) -> Path:
+    """Write the host sheet (the playlist as a checklist) to a PDF."""
+    from muzbingo.render.host_sheet import ORIENTATION, PAGE_SIZE
+    from muzbingo.render.pdf import print_pdf
+
+    pdf_path = Path(pdf_path).resolve()
+    with tempfile.TemporaryDirectory(prefix="muzbingo-") as tmp:
+        html_file = Path(tmp) / "host.html"
+        html_file.write_text(render_host_sheet(game, order), encoding="utf-8")
+        print_pdf(html_file, pdf_path, page_size=PAGE_SIZE, orientation=ORIENTATION)
     return pdf_path

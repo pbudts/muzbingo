@@ -140,6 +140,8 @@ muzbingo/
 │   │   ├── csv_importer.py
 │   │   └── excel_importer.py
 │   ├── generator.py             # generate_cards(playlist, n_cards, rows, cols, seed)
+│   ├── cleanup.py               # clean_title(): strip "- Remastered", "(feat. …)", …
+│   ├── images.py                # prepare_image(): scale down large uploaded pictures
 │   ├── patterns.py              # check_card(card, played, pattern) → CheckResult
 │   ├── storage.py               # save_game(game, path) / load_game(path)
 │   ├── render/
@@ -147,6 +149,7 @@ muzbingo/
 │   │   ├── templates.py         # find, list and load card templates (template.toml)
 │   │   ├── context.py           # Game → template context (display texts, dates, font-size classes)
 │   │   ├── html.py              # Jinja2 environment, render_html(...)
+│   │   ├── host_sheet.py        # render_host_sheet(game, order) + host_sheet.html.j2
 │   │   └── pdf.py               # html file → PDF via QWebEnginePage.printToPdf
 │   ├── services/
 │   │   ├── library.py           # "My games": games/<id>.muzbingo in the data folder, autosave
@@ -330,10 +333,18 @@ page, handles downloads and closes cleanly (about 50 lines). All UI logic lives 
   templates can override it in `template.toml`.
 - A filter toggle shows only songs with warnings, so you can fix them quickly before
   printing.
-- **Bulk cleanup action:** strips `- Remastered…`, `(feat. …)`, `- Radio Edit`, etc. It
-  shows a preview first, and the results go into the display fields.
+- **Bulk cleanup action ("Shorten titles"):** strips `- Remastered…`, `(feat. …)`,
+  `- Radio Edit`, etc. (`cleanup.py`; only trailing parts, so "(I Can't Get No)
+  Satisfaction" stays). It shows a preview with checkboxes first, and the results go
+  into the display fields.
 - **Other actions:** add, delete and reorder songs.
-- **Undo:** `GameService` keeps a short history of game snapshots per open game.
+- **Undo:** `GameService` keeps a history of game snapshots (50 steps, undo and redo),
+  with buttons in the top bar and Ctrl+Z / Ctrl+Y. Every change goes through one
+  `_change()` wrapper that snapshots, saves, and rolls back on errors; quick repeated
+  edits of the same field (typing a title) are one step, and bulk actions (delete,
+  shorten titles) are one step. The UI keeps one `GameService` per game for the
+  whole session (`AppContext.game_service`), so the history survives page reloads;
+  if the file was changed by something else, the game is loaded fresh.
 - **Effect on generated cards:**
   - Display text edits don't invalidate them.
   - Adding or removing songs does, with a "regenerate?" banner. Removing a song that
@@ -521,7 +532,10 @@ Example:
     the title + artist length compared with the template's `max_chars`.
   - The edit mode (4.2) lets you shorten what still doesn't fit.
 - **Extra outputs:**
-  - **Host sheet:** a PDF with the full playlist as a checklist, sorted or in play order.
+  - **Host sheet:** a PDF (A4 portrait, `render/host_sheet.html.j2`, independent of
+    the card template) with the full playlist as a checklist: in a shuffled play order
+    (the same every time for a game), playlist order, or sorted by artist or title. It
+    shows on how many cards each song appears.
   - **HTML export:** for working on templates in a browser.
 
 The full template is in `src/muzbingo/templates/classic/cards.html.j2`.
@@ -542,9 +556,12 @@ The full template is in `src/muzbingo/templates/classic/cards.html.j2`.
    - Grid: rows and columns, plus presets **4×5** and **5×5**.
    - Number of cards.
    - Seed, with a "🎲 new seed" button.
-   - Template and card language.
+   - Template and card language, plus a button to copy the template into the user
+     templates folder to make your own.
    - Background picture and logo: upload an image or use the template default; each
-     is shown with a thumbnail.
+     is shown with a thumbnail. Large raster pictures are scaled down on upload
+     (`images.py`, Qt's QImage: background max. 3508 px = A4 at 300 dpi, logo max.
+     1200 px; heavy pictures without transparency become JPEG). SVG stays as is.
 2. **Playlist:** the editable table from 4.2. It also shows the song count, with a
    warning when the playlist is too small for the grid, plus **Import playlist**
    (replace or append).
@@ -658,7 +675,7 @@ Share:     My games: Download → game.muzbingo (all data incl. pictures) → Im
 | **0 — Skeleton** | `pyproject.toml`, package layout, models, `paths.py`, pytest set up | ✅ done |
 | **1 — Core** | CSV and Excel importers, generator (rows × cols), pattern checker, JSON storage, Jinja → HTML → PDF renderer, `classic` template (1 card/A4, 4×5 and 5×5), tests. Small CLI (`muzbingo new playlist.csv --grid 4x5 --cards 40 -o game.muzbingo`, `muzbingo pdf game.muzbingo -o cards.pdf`) | ✅ done |
 | **2 — Web UI MVP** | Services (library with autosave, game service, PDF service on the Qt thread), `muzbingo serve`, URL resolver for previews, start page, game page (settings, playlist table with editing, generate, preview, download PDF), token auth, UI tests | ✅ done |
-| **3 — Polish** | Column-mapping dialog, length warnings and bulk cleanup, undo, image upload with downscaling, user templates folder, host sheet | |
+| **3 — Polish** | Column-mapping dialog, length warnings and bulk cleanup, undo, image upload with downscaling, user templates folder, host sheet | ✅ done |
 | **4 — Host mode** | Mark played songs; verify a card number for one line / two lines / full card | |
 | **5 — Desktop & i18n** | App window (`desktop/window.py`) with native downloads; all strings in `_()` from the start; Dutch `.po` translation and language switch | |
 | **6 — Packaging** | PyInstaller spec, portable Windows zip, Linux tarball, single-instance lock, CI build on GitHub Actions; installer later | |

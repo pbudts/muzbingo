@@ -28,7 +28,7 @@ muzbingo = "muzbingo.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-muzbingo = ["templates/**/*", "i18n/*.qm"]
+muzbingo = ["templates/**/*", "render/*.j2", "i18n/*.qm"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

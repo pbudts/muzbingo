@@ -13,7 +13,9 @@ import tempfile
 from pathlib import Path
 
 from muzbingo.models import Game
-from muzbingo.render import CardTemplate, RenderError, export_html, load_template
+from muzbingo.render import CardTemplate, HostOrder, RenderError, export_html, load_template, render_host_sheet
+from muzbingo.render.host_sheet import ORIENTATION as HOST_ORIENTATION
+from muzbingo.render.host_sheet import PAGE_SIZE as HOST_PAGE_SIZE
 
 
 class PdfService:
@@ -28,14 +30,8 @@ class PdfService:
             job = Signal(object)
 
             def run(self, job: tuple) -> None:  # runs on the Qt thread
-                html_file, pdf_file, template, done = job
-                start_print(
-                    html_file,
-                    pdf_file,
-                    done,
-                    page_size=template.page_size,
-                    orientation=template.orientation,
-                )
+                html_file, pdf_file, page_size, orientation, done = job
+                start_print(html_file, pdf_file, done, page_size=page_size, orientation=orientation)
 
         self._bridge = _Bridge()
         self._bridge.job.connect(self._bridge.run, Qt.ConnectionType.QueuedConnection)
@@ -43,11 +39,32 @@ class PdfService:
     async def render(self, game: Game, template: CardTemplate | None = None) -> bytes:
         """Return the PDF with all cards of ``game``."""
         template = template or load_template(game.template)
+        tmp = tempfile.TemporaryDirectory(prefix="muzbingo-")
+        try:
+            html_file = export_html(game, Path(tmp.name) / "cards.html", template)
+        except Exception:
+            tmp.cleanup()
+            raise
+        return await self._print(tmp, html_file, template.page_size, template.orientation)
+
+    async def render_host_sheet(self, game: Game, order: HostOrder | str = HostOrder.PLAYLIST) -> bytes:
+        """Return the host sheet PDF: the playlist as a checklist."""
+        tmp = tempfile.TemporaryDirectory(prefix="muzbingo-")
+        html_file = Path(tmp.name) / "host.html"
+        try:
+            html_file.write_text(render_host_sheet(game, order), encoding="utf-8")
+        except Exception:
+            tmp.cleanup()
+            raise
+        return await self._print(tmp, html_file, HOST_PAGE_SIZE, HOST_ORIENTATION)
+
+    async def _print(
+        self, tmp: tempfile.TemporaryDirectory, html_file: Path, page_size: str, orientation: str
+    ) -> bytes:
+        """Print ``html_file`` on the Qt thread; ``tmp`` is removed when done."""
         loop = asyncio.get_running_loop()
         future: asyncio.Future[bytes] = loop.create_future()
-        tmp = tempfile.TemporaryDirectory(prefix="muzbingo-")
-        html_file = export_html(game, Path(tmp.name) / "cards.html", template)
-        pdf_file = Path(tmp.name) / "cards.pdf"
+        pdf_file = Path(tmp.name) / "out.pdf"
 
         def finish(error: str | None) -> None:  # on the asyncio thread
             try:
@@ -66,5 +83,5 @@ class PdfService:
             except RuntimeError:  # the server's loop is already closed (shutting down)
                 tmp.cleanup()
 
-        self._bridge.job.emit((html_file, pdf_file, template, done))
+        self._bridge.job.emit((html_file, pdf_file, page_size, orientation, done))
         return await future

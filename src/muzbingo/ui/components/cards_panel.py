@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from nicegui import ui
 
 from muzbingo.i18n import _
-from muzbingo.render import RenderError, TemplateError
+from muzbingo.render import HostOrder, RenderError, TemplateError
 from muzbingo.services import ServiceError
 from muzbingo.ui import context
 from muzbingo.ui.layout import notify_error, safe_filename
@@ -23,7 +23,7 @@ PREVIEW_SCALE = 0.62
 def cards_panel(page: GamePage) -> None:
     service = page.service
     game = service.game
-    state = {"number": 1, "version": 0}
+    state = {"number": 1, "version": 0, "host_order": HostOrder.SHUFFLED.value}
 
     @ui.refreshable
     def status() -> None:
@@ -52,6 +52,23 @@ def cards_panel(page: GamePage) -> None:
             )
             pdf_button.on_click(lambda: download_pdf(pdf_button))
             pdf_button.set_enabled(bool(game.cards) and not game.cards_outdated)
+        with ui.row().classes("items-center gap-2"):
+            ui.select(
+                {
+                    HostOrder.SHUFFLED.value: _("Play order (shuffled)"),
+                    HostOrder.PLAYLIST.value: _("Playlist order"),
+                    HostOrder.ARTIST.value: _("Sorted by artist"),
+                    HostOrder.TITLE.value: _("Sorted by title"),
+                },
+                label=_("Host sheet: songs in"),
+                value=state["host_order"],
+                on_change=lambda e: state.update(host_order=e.value),
+            ).classes("w-56").mark("host-order")
+            host_button = ui.button(_("Download host sheet"), icon="checklist").props("outline").mark(
+                "download-host-sheet"
+            ).tooltip(_("The playlist as a checklist, to tick off the songs you played"))
+            host_button.on_click(lambda: download_host_sheet(host_button))
+            host_button.set_enabled(bool(game.playlist))
 
     @ui.refreshable
     def preview() -> None:
@@ -117,6 +134,22 @@ def cards_panel(page: GamePage) -> None:
         finally:
             button.props(remove="loading")
         ui.download.content(pdf, safe_filename(game.title, ".pdf"), media_type="application/pdf")
+
+    async def download_host_sheet(button: ui.button) -> None:
+        pdf_service = context.get().pdf
+        if pdf_service is None:
+            notify_error(_("PDF export is not available: Qt WebEngine could not be started."))
+            return
+        button.props("loading")
+        try:
+            pdf = await pdf_service.render_host_sheet(game, state["host_order"])
+        except RenderError as exc:
+            notify_error(str(exc))
+            return
+        finally:
+            button.props(remove="loading")
+        name = _("{title} - host sheet").format(title=game.title)
+        ui.download.content(pdf, safe_filename(name, ".pdf"), media_type="application/pdf")
 
     with ui.card().classes("w-full gap-3"):
         status()

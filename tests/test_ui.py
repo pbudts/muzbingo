@@ -115,3 +115,58 @@ async def test_preview_route(user: User, library, saved_game):
 
     css = await user.http_client.get("/assets/templates/classic/style.css")
     assert css.status_code == 200
+
+
+async def test_undo_and_redo_buttons(user: User, library, saved_game):
+    await user.open(f"/game/{saved_game.id}")
+    user.find(marker="title").clear().type("Nieuwjaar")
+    assert library.load(saved_game.id).title == "Nieuwjaar"
+    user.find(marker="undo").click()
+    await user.should_see("Kerstfeest", marker="page-title")
+    assert library.load(saved_game.id).title == "Kerstfeest"
+    assert user.find(marker="title").elements.pop().value == "Kerstfeest"  # the panels were rebuilt
+    user.find(marker="redo").click()
+    await user.should_see("Nieuwjaar", marker="page-title")
+    assert library.load(saved_game.id).title == "Nieuwjaar"
+
+
+async def test_shorten_titles_dialog(user: User, library, saved_game):
+    saved_game.playlist[0].title = "Hey Jude - Remastered 2015"
+    library.save(saved_game)
+    await user.open(f"/game/{saved_game.id}?tab=playlist")
+    user.find(marker="shorten-titles").click()
+    await user.should_see(marker="cleanup-grid")
+    grid = user.find(marker="cleanup-grid").elements.pop()
+    assert grid.options["rowData"][0]["new"] == "Hey Jude"
+
+
+async def test_copy_template(user: User, saved_game, tmp_path, monkeypatch):
+    from muzbingo import paths
+
+    monkeypatch.setattr(paths, "_data_dir_override", tmp_path / "data")
+    await user.open(f"/game/{saved_game.id}")
+    user.find(marker="copy-template").click()
+    await user.should_see(marker="copy-name")
+    user.find(marker="copy-name").clear().type("Our party")
+    user.find(marker="copy-ok").click()
+    await user.should_see("Copied to")
+    assert (tmp_path / "data" / "templates" / "our-party" / "template.toml").is_file()
+
+
+async def test_undo_survives_reload(user: User, library, saved_game):
+    await user.open(f"/game/{saved_game.id}")
+    user.find(marker="title").clear().type("Nieuwjaar")
+    await user.open(f"/game/{saved_game.id}")  # e.g. after "back to My games"
+    user.find(marker="undo").click()
+    await user.should_see("Kerstfeest", marker="page-title")
+    assert library.load(saved_game.id).title == "Kerstfeest"
+
+
+async def test_changed_file_is_reloaded(user: User, library, saved_game):
+    await user.open(f"/game/{saved_game.id}")
+    user.find(marker="title").clear().type("Nieuwjaar")
+    game = library.load(saved_game.id)
+    game.title = "Changed elsewhere"
+    library.save(game)
+    await user.open(f"/game/{saved_game.id}")
+    await user.should_see("Changed elsewhere", marker="page-title")

@@ -13,6 +13,9 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the design and roadmap.
 - Phase 2 (web UI): first version done. It covers the "My games" library, game settings,
   the playlist editor, card generation, card preview and PDF download. It runs in a
   browser with `muzbingo serve`. The app window for end-users follows in phase 5.
+- Phase 3 (polish): done. Undo/redo, "Shorten titles" (removes "Remastered",
+  "feat. …" and the like), automatic downscaling of large pictures, copying a card
+  template to make your own, and the host sheet (the playlist as a checklist).
 
 ## Setup (development)
 
@@ -83,6 +86,9 @@ muzbingo pdf kerstfeest.muzbingo -o kerstfeest.pdf
 
 # Or write HTML, to work on a template in a browser
 muzbingo pdf kerstfeest.muzbingo --html -o kerstfeest.html
+
+# The host sheet: all songs as a checklist (shuffled play order, or playlist/artist/title)
+muzbingo hostsheet kerstfeest.muzbingo -o host.pdf --order artist
 ```
 
 If the title/artist columns aren't detected automatically, pick them with
@@ -105,9 +111,13 @@ Templates live in `src/muzbingo/templates/<name>/`:
 - `cards.html.j2`: the Jinja2 HTML
 - `style.css`: layout and colours; the variables at the top move or restyle elements
 
-To make your own, copy the `classic` folder into the user templates folder:
+To make your own, copy a template into your templates folder: in the app, use the copy
+button next to "Card template" (Settings tab), or run
+`muzbingo templates --copy classic "Our party"`. The copy goes to:
 - Linux: `~/.local/share/MuzBingo/templates/`
 - Windows: `%APPDATA%\MuzBingo\templates\`
 - Portable app: `data/templates/` next to the program
+- With `muzbingo serve --data-dir DIR`: `DIR/templates/`
 
-Give the folder a new name and edit it. `muzbingo templates` lists what's available.
+Edit the files of the copy; the card preview in the app shows the result when you
+switch tabs or pages. `muzbingo templates` lists what's available and where.

@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import threading
 import time
 from datetime import date
@@ -23,6 +24,11 @@ def service(library, game):
 
 def reload(service):
     return service.library.load(service.game.id)
+
+
+TINY_PNG = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+)
 
 
 def write_csv(tmp_path, rows, header="Title,Artist"):
@@ -129,10 +135,12 @@ def test_playlist_status(service):
 
 
 def test_images(service):
-    service.set_image("logo", Image(filename="l.png", mime="image/png", data=b"x"))
-    assert reload(service).logo.data == b"x"
+    service.set_image("logo", Image(filename="l.png", mime="image/png", data=TINY_PNG))
+    assert reload(service).logo.data == TINY_PNG
     service.set_image("logo", None)
     assert reload(service).logo is None
+    with pytest.raises(ServiceError):
+        service.set_image("logo", Image(filename="l.png", mime="image/png", data=b"not a picture"))
 
 
 def test_too_long(service):

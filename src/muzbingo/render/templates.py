@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import re
+import shutil
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from muzbingo.paths import template_search_path
+from muzbingo.paths import template_search_path, user_templates_dir
 
 MANIFEST = "template.toml"
 DEFAULT_LABELS = {"card": "Card"}
@@ -95,3 +97,32 @@ def list_templates(search_path: list[Path] | None = None) -> list[CardTemplate]:
                 except TemplateError:
                     continue  # skip broken templates in listings; load_template reports them
     return list(found.values())
+
+
+def _toml_string(text: str) -> str:
+    return '"' + text.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def copy_template(name: str, display_name: str, target_root: Path | None = None) -> CardTemplate:
+    """Copy template ``name`` to the user templates folder under a new name, to edit it.
+
+    The folder name is made from ``display_name``; a number is added when it exists.
+    """
+    source = load_template(name)
+    root = target_root or user_templates_dir()
+    root.mkdir(parents=True, exist_ok=True)
+    display_name = " ".join(display_name.split())
+    taken = {t.name for t in list_templates()}  # a copy must not hide another template
+    base = re.sub(r"[^a-z0-9]+", "-", display_name.casefold()).strip("-") or "my-template"
+    folder, n = root / base, 2
+    while folder.exists() or folder.name in taken:
+        folder, n = root / f"{base}-{n}", n + 1
+    shutil.copytree(source.path, folder)
+    manifest = folder / MANIFEST
+    text = manifest.read_text(encoding="utf-8")
+    line = f"name = {_toml_string(display_name or folder.name)}"
+    text, count = re.subn(r"(?m)^name\s*=.*$", lambda _m: line, text, count=1)
+    if not count:
+        text = line + "\n" + text
+    manifest.write_text(text, encoding="utf-8")
+    return _read(folder)

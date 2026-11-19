@@ -95,9 +95,10 @@ def playlist_panel(page: GamePage) -> None:
         return [row["id"] for row in rows]
 
     async def reset_selected() -> None:
-        for song_id in await selected_ids():
-            service.reset_song(song_id)
-        page.changed()
+        ids = await selected_ids()
+        if ids:
+            service.reset_songs(ids)
+            page.changed()
 
     async def delete_selected() -> None:
         ids = await selected_ids()
@@ -116,8 +117,10 @@ def playlist_panel(page: GamePage) -> None:
                 ui.button(_("Cancel"), on_click=lambda: dialog.submit(False)).props("flat")
                 ui.button(_("Delete"), color="negative", on_click=lambda: dialog.submit(True))
         if await dialog:
-            for song_id in ids:
-                service.delete_song(song_id)
+            try:
+                service.delete_songs(ids)
+            except ServiceError as exc:
+                notify_error(str(exc))
             page.changed()
 
     async def add_song() -> None:
@@ -135,6 +138,49 @@ def playlist_panel(page: GamePage) -> None:
                 notify_error(str(exc))
             page.changed()
 
+    async def shorten_titles() -> None:
+        suggestions = service.cleanup_suggestions()
+        if not suggestions:
+            ui.notify(_("No titles to shorten: none of them end in “Remastered”, “feat. …”, “Radio Edit” and the like."))
+            return
+        with ui.dialog() as dialog, ui.card().classes("w-[52rem] max-w-full gap-3"):
+            ui.label(_("Shorten titles")).classes("text-lg font-medium")
+            ui.label(
+                _("These titles end in release details, like “Remastered 2011” or “feat. …”. "
+                  "Untick the ones you want to keep as they are.")
+            ).classes("text-sm text-gray-600")
+            preview = ui.aggrid(
+                {
+                    "columnDefs": [
+                        {"headerName": _("Now"), "field": "now", "flex": 1},
+                        {"headerName": _("Shortened"), "field": "new", "flex": 1,
+                         "cellStyle": {"fontWeight": "bold"}},
+                    ],
+                    "rowData": [{"id": song.id, "now": song.shown_title, "new": shorter}
+                                for song, shorter in suggestions],
+                    "rowSelection": {"mode": "multiRow"},
+                    ":getRowId": "params => params.data.id",
+                    ":onFirstDataRendered": "params => params.api.selectAll()",
+                },
+                theme="quartz",
+            ).classes("w-full").style("height: 50vh").mark("cleanup-grid")
+            ui.label(
+                _("Only the printed text changes; the original title stays saved.")
+            ).classes("text-xs text-gray-500")
+            with ui.row().classes("w-full justify-end"):
+                ui.button(_("Cancel"), on_click=lambda: dialog.submit(None)).props("flat")
+                ui.button(_("Shorten selected titles"), on_click=lambda: apply()).mark("cleanup-apply")
+
+        async def apply() -> None:
+            rows = await preview.get_selected_rows()
+            dialog.submit([row["id"] for row in rows])
+
+        ids = await dialog
+        if ids:
+            n = service.apply_cleanup(ids)
+            ui.notify(_("{n} titles shortened.").format(n=n), type="positive")
+            page.changed()
+
     def toggle_warnings(value: bool) -> None:
         state["only_warnings"] = value
         refresh()
@@ -148,6 +194,9 @@ def playlist_panel(page: GamePage) -> None:
                 "unelevated"
             ).mark("import-playlist")
             ui.button(_("Add song"), icon="add", on_click=add_song).props("flat")
+            ui.button(_("Shorten titles"), icon="content_cut", on_click=shorten_titles).props("flat").tooltip(
+                _("Remove “Remastered”, “feat. …”, “Radio Edit” and the like from the titles")
+            ).mark("shorten-titles")
             ui.button(_("Use original text"), icon="restart_alt", on_click=reset_selected).props("flat").tooltip(
                 _("Print the original title and artist again for the selected songs")
             )

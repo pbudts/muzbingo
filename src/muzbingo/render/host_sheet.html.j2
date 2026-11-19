@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="{{ game.language }}">
+<head>
+<meta charset="utf-8">
+<title>{{ game.title }}</title>
+<style>
+  @page { size: A4 portrait; margin: 14mm 12mm 14mm 12mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "DejaVu Sans", "Liberation Sans", Arial, sans-serif; font-size: 9.5pt; color: #222; margin: 0; }
+  header { display: flex; justify-content: space-between; align-items: flex-end;
+           border-bottom: 2px solid #4b2a8c; padding-bottom: 4mm; margin-bottom: 3mm; }
+  h1 { font-size: 17pt; margin: 0; color: #2b1a5e; }
+  .meta { text-align: right; color: #555; font-size: 9pt; line-height: 1.4; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { display: table-header-group; }
+  th { text-align: left; font-size: 8pt; text-transform: uppercase; letter-spacing: .04em; color: #666;
+       border-bottom: 1px solid #999; padding: 1.5mm 2mm; }
+  td { padding: 1.6mm 2mm; border-bottom: 1px solid #e3e0ea; vertical-align: top; }
+  tr { page-break-inside: avoid; }
+  tbody tr:nth-child(even) td { background: #f7f5fb; }
+  .box { width: 9mm; }
+  .box span { display: inline-block; width: 4mm; height: 4mm; border: 1.2px solid #444; border-radius: 1px; }
+  .n, .cards { width: 12mm; color: #777; text-align: right; font-variant-numeric: tabular-nums; }
+  .title { font-weight: bold; }
+  .artist { color: #444; }
+  .none { color: #b00; font-size: 8pt; }
+</style>
+</head>
+<body>
+<header>
+  <h1>{{ game.title }}</h1>
+  <div class="meta">
+    {% if date_text %}{{ date_text }}<br>{% endif %}
+    {{ rows|length }} {{ labels.songs }}{% if n_cards %} · {{ n_cards }} {{ labels.cards }} {{ game.rows }}×{{ game.cols }}{% endif %}<br>
+    {{ order_text }}
+  </div>
+</header>
+<table>
+  <thead>
+    <tr>
+      <th class="box">{{ labels.played }}</th>
+      <th class="n">#</th>
+      <th>{{ labels.title }}</th>
+      <th>{{ labels.artist }}</th>
+      {% if show_cards %}<th class="cards">{{ labels.on_cards }}</th>{% endif %}
+    </tr>
+  </thead>
+  <tbody>
+  {% for row in rows %}
+    <tr>
+      <td class="box"><span></span></td>
+      <td class="n">{{ row.n }}</td>
+      <td class="title">{{ row.title }}</td>
+      <td class="artist">{{ row.artist }}</td>
+      {% if show_cards %}
+      <td class="cards">{% if row.cards %}{{ row.cards }}{% else %}<span class="none">{{ labels.not_on_cards }}</span>{% endif %}</td>
+      {% endif %}
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</body>
+</html>

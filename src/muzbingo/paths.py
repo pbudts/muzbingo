@@ -15,6 +15,14 @@ from pathlib import Path
 
 APP_NAME = "MuzBingo"
 
+_data_dir_override: Path | None = None
+
+
+def set_data_dir(path: Path | None) -> None:
+    """Use ``path`` as the data folder (``muzbingo serve --data-dir``), or the default again."""
+    global _data_dir_override
+    _data_dir_override = Path(path).resolve() if path else None
+
 
 def is_frozen() -> bool:
     return bool(getattr(sys, "frozen", False))
@@ -39,6 +47,8 @@ def is_portable() -> bool:
 
 
 def user_data_dir() -> Path:
+    if _data_dir_override is not None:
+        return _data_dir_override
     if is_portable():
         return app_dir() / "data"
     if sys.platform == "win32":

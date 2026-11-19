@@ -6,11 +6,13 @@ from datetime import date
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from nicegui import events, ui
+from nicegui import events, run, ui
 
 from muzbingo.i18n import _
 from muzbingo.models import IMAGE_MIME_TYPES, Image, new_seed
+from muzbingo import paths
 from muzbingo.render import HttpUrls, TemplateError, list_templates
+from muzbingo.render.templates import copy_template
 from muzbingo.services import ServiceError
 from muzbingo.services.game_service import CARD_LANGUAGES, MAX_CARDS, MAX_SIZE, MIN_SIZE
 from muzbingo.ui.layout import notify_error
@@ -107,12 +109,54 @@ def settings_panel(page: GamePage) -> None:
         with ui.card().classes("gap-2"):
             ui.label(_("Look")).classes("text-base font-medium")
             templates = {t.name: t.display_name for t in list_templates()}
-            ui.select(
-                templates,
-                label=_("Card template"),
-                value=game.template if game.template in templates else None,
-                on_change=lambda e: (apply(template=e.value), pictures.refresh()),
-            ).classes("w-full")
+            with ui.row().classes("w-full items-center no-wrap gap-1"):
+                template_select = ui.select(
+                    templates,
+                    label=_("Card template"),
+                    value=game.template if game.template in templates else None,
+                    on_change=lambda e: (apply(template=e.value), pictures.refresh()),
+                ).classes("grow").mark("template")
+                ui.button(icon="file_copy", on_click=lambda: copy_dialog()).props("flat round").tooltip(
+                    _("Make a copy of this template to change its layout")
+                ).mark("copy-template")
+
+            async def copy_dialog() -> None:
+                source = game.template
+                with ui.dialog() as dialog, ui.card().classes("w-[32rem] max-w-full gap-3"):
+                    ui.label(_("Copy the card template")).classes("text-lg font-medium")
+                    ui.label(
+                        _("The copy goes to your templates folder. Change its style.css, cards.html.j2 "
+                          "and pictures there with a text editor; the preview shows the result.")
+                    ).classes("text-sm text-gray-600")
+                    name = ui.input(
+                        _("Name of the copy"),
+                        value=_("{name} (my copy)").format(name=templates.get(source, source)),
+                    ).classes("w-full").mark("copy-name")
+                    with ui.row().classes("w-full justify-end"):
+                        ui.button(_("Cancel"), on_click=lambda: dialog.submit(None)).props("flat")
+                        ui.button(_("Copy"), on_click=lambda: dialog.submit(name.value)).mark("copy-ok")
+                display_name = await dialog
+                if not display_name:
+                    return
+                try:
+                    template = copy_template(source, display_name)
+                except (TemplateError, OSError) as exc:
+                    notify_error(str(exc))
+                    return
+                templates[template.name] = template.display_name
+                template_select.set_options(templates, value=template.name)
+                folder.refresh()
+                ui.notify(
+                    _("Copied to {path}").format(path=template.path), type="positive", multi_line=True
+                )
+
+            @ui.refreshable
+            def folder() -> None:
+                ui.label(
+                    _("Your own templates: {path}").format(path=paths.user_templates_dir())
+                ).classes("text-xs text-gray-500 break-all")
+
+            folder()
 
             @ui.refreshable
             def pictures() -> None:
@@ -159,7 +203,22 @@ def settings_panel(page: GamePage) -> None:
                 if mime is None:
                     notify_error(_("Please choose a PNG, JPG, SVG or WebP picture."))
                     return
-                service.set_image(kind, Image(filename=e.file.name, mime=mime, data=await e.file.read()))
+                data = await e.file.read()
+                try:
+                    # Scaling a big photo takes a moment; keep the UI responsive.
+                    await run.io_bound(
+                        service.set_image, kind, Image(filename=e.file.name, mime=mime, data=data)
+                    )
+                except ServiceError as exc:
+                    notify_error(str(exc))
+                    return
+                stored = getattr(game, kind)
+                if stored is not None and len(stored.data) < len(data):
+                    ui.notify(
+                        _("The picture was made smaller for printing ({before} → {after} MB).").format(
+                            before=f"{len(data) / 1e6:.1f}", after=f"{len(stored.data) / 1e6:.1f}"
+                        )
+                    )
                 pictures.refresh()
                 page.changed()
 

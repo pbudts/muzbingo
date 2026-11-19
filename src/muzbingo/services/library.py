@@ -52,6 +52,13 @@ class Library:
         except LibraryError:
             return False
 
+    def version(self, game_id: str) -> int | None:
+        """Changes whenever the game file is written; None if the game doesn't exist."""
+        try:
+            return self.path_for(game_id).stat().st_mtime_ns
+        except (OSError, LibraryError):
+            return None
+
     # -- reading -----------------------------------------------------------
 
     def list(self) -> list[GameSummary]:

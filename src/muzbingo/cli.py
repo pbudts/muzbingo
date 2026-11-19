@@ -6,6 +6,8 @@ Examples::
     muzbingo new playlist.csv --title "Christmas Party" --grid 4x5 --cards 40 \\
         --date 2026-12-19 --language nl -o party.muzbingo
     muzbingo pdf party.muzbingo -o party.pdf
+    muzbingo hostsheet party.muzbingo -o host.pdf --order artist
+    muzbingo templates --copy classic "Our party"
 """
 
 from __future__ import annotations
@@ -105,6 +107,15 @@ def cmd_pdf(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_hostsheet(args: argparse.Namespace) -> int:
+    from muzbingo.render import export_host_sheet
+
+    game = load_game(args.game)
+    out = export_host_sheet(game, args.output, args.order)
+    print(f"Wrote {out} ({len(game.playlist)} songs)")
+    return 0
+
+
 def cmd_serve(args: argparse.Namespace) -> int:
     from muzbingo.ui.server import serve
 
@@ -112,8 +123,20 @@ def cmd_serve(args: argparse.Namespace) -> int:
 
 
 def cmd_templates(args: argparse.Namespace) -> int:
-    from muzbingo.render import list_templates
+    from muzbingo.paths import user_templates_dir
+    from muzbingo.render import TemplateError, list_templates
+    from muzbingo.render.templates import copy_template
 
+    if args.copy:
+        source, name = args.copy
+        try:
+            template = copy_template(source, name)
+        except TemplateError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        print(f"Copied '{source}' to {template.path}")
+        return 0
+    print(f"Your own templates go in: {user_templates_dir()}\n")
     for template in list_templates():
         print(f"{template.name:12} {template.display_name} — {template.path}")
     return 0
@@ -154,6 +177,13 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--html", action="store_true", help="write HTML instead of PDF (for template work)")
     p.set_defaults(func=cmd_pdf)
 
+    p = sub.add_parser("hostsheet", help="print the playlist as a checklist for the host")
+    p.add_argument("game", help=f"game file ({FILE_EXTENSION})")
+    p.add_argument("-o", "--output", required=True, help="PDF to write")
+    p.add_argument("--order", choices=["shuffled", "playlist", "artist", "title"], default="shuffled",
+                   help="order of the songs (default: shuffled, a play order)")
+    p.set_defaults(func=cmd_hostsheet)
+
     p = sub.add_parser("serve", help="run the app for use in a web browser")
     p.add_argument("--host", default="127.0.0.1",
                    help="address to listen on (default: 127.0.0.1, only this computer)")
@@ -162,6 +192,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(func=cmd_serve)
 
     p = sub.add_parser("templates", help="list the available card templates")
+    p.add_argument("--copy", nargs=2, metavar=("TEMPLATE", "NAME"),
+                   help="copy a template to your templates folder, to change its layout")
     p.set_defaults(func=cmd_templates)
     return parser
 

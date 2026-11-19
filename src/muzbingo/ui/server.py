@@ -76,7 +76,9 @@ def start_server(host: str, port: int, data_dir: Path | None = None) -> RunningS
 
     ensure_qt_app()
     pdf = PdfService()
-    library = Library(paths.games_dir(data_dir))
+    if data_dir is not None:
+        paths.set_data_dir(data_dir)  # games, user templates and settings all live there
+    library = Library(paths.games_dir())
     token = new_token()
     app = build_app(library, pdf, token, check_host=_is_loopback(host))
 
@@ -123,7 +125,8 @@ def serve(host: str = "127.0.0.1", port: int = 8080, data_dir: Path | None = Non
         print("From another computer, forward the port first, e.g.:")
         print(f"    ssh -L {running.port}:localhost:{running.port} <this machine>")
         print("(VS Code Remote-SSH does this automatically: see the Ports panel.)\n")
-    print(f"Games are stored in: {paths.games_dir(data_dir)}")
+    print(f"Games are stored in: {paths.games_dir()}")
+    print(f"Your own card templates go in: {paths.user_templates_dir()}")
     print("Press Ctrl+C to stop.")
 
     app = QApplication.instance()
