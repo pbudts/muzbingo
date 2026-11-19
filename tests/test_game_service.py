@@ -196,3 +196,34 @@ def test_no_cards_no_generation(service):
     service.save()
     assert service.update(rows=5) is False
     assert not service.game.cards
+
+
+def test_host_mode(service):
+    from muzbingo.patterns import Pattern
+
+    game = service.game
+    card = game.cards[0]
+    for song_id in card.cells[1]:  # complete the second row of card 1
+        service.set_played(song_id)
+    assert reload(service).played == card.cells[1]
+    result = service.check(1, Pattern.ONE_LINE)
+    assert result.won and result.complete_rows[0] == 1
+    assert 1 in service.winners(Pattern.ONE_LINE)
+    assert not service.check(1, Pattern.TWO_LINES).won
+
+    service.set_played(card.cells[1][0], False)
+    assert not service.check(1, Pattern.ONE_LINE).won
+    service.set_played(card.cells[1][0])
+    assert service.played_songs()[-1].id == card.cells[1][0]  # back at the end of the order
+
+    with pytest.raises(ServiceError):
+        service.check(len(game.cards) + 1, Pattern.ONE_LINE)
+    with pytest.raises(ServiceError):
+        service.set_played("h:unknown")
+
+    service.delete_songs([card.cells[1][2]])
+    assert card.cells[1][2] not in service.game.played
+    service.clear_played()
+    assert reload(service).played == []
+    service.undo()
+    assert len(service.game.played) == len(card.cells[1]) - 1

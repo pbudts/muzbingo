@@ -169,7 +169,7 @@ muzbingo/
 │   │       ├── settings_panel.py   # title, date, grid, cards, seed, template, pictures
 │   │       ├── playlist_panel.py   # editable table with length warnings + import dialog
 │   │       ├── cards_panel.py      # generate, preview (iframe), download PDF
-│   │       └── host_panel.py       # mark played songs, check a card number (phase 4)
+│   │       └── host_panel.py       # mark played songs, possible winners, check a card number
 │   ├── desktop/
 │   │   └── window.py            # QMainWindow + QWebEngineView pointing at the local server
 │   ├── i18n/
@@ -569,8 +569,18 @@ The full template is in `src/muzbingo/templates/classic/cards.html.j2`.
    - **Generate cards** button.
    - Live preview of card #N (an `<iframe>`, previous/next buttons).
    - **Download PDF** and **Download host sheet** (phase 3).
-4. **Host** (phase 4): the playlist with checkboxes in play order, a "check card #"
-   field, and the pattern result.
+4. **Host:**
+   - The playlist with a "played" checkbox per song, searchable, in the shuffled play
+     order of the host sheet (or playlist order, or sorted). Ticking adds the song to
+     `played` (the play order is shown); unticking removes it; Ctrl+Z undoes a tick.
+     Rows update in place, so the search and scroll position stay.
+   - **This round:** one line / two lines / full card. Lists the cards that have the
+     pattern with the songs played so far, and pops up a message as soon as a new card
+     gets it.
+   - **Check a card:** enter a card number (or click a card in the list). Shows the
+     verdict, and the card with played songs green, complete rows dark green, and
+     the songs still needed for the nearest win outlined.
+   - **Start again** clears the played songs (undoable).
 
 **Top bar:** the game title, a "back to My games" link, an autosave indicator
 ("Saved ✓"), and the UI language switch (English / Nederlands).
@@ -680,7 +690,7 @@ Share:     My games: Download → game.muzbingo (all data incl. pictures) → Im
 | **1 — Core** | CSV and Excel importers, generator (rows × cols), pattern checker, JSON storage, Jinja → HTML → PDF renderer, `classic` template (1 card/A4, 4×5 and 5×5), tests. Small CLI (`muzbingo new playlist.csv --grid 4x5 --cards 40 -o game.muzbingo`, `muzbingo pdf game.muzbingo -o cards.pdf`) | ✅ done |
 | **2 — Web UI MVP** | Services (library with autosave, game service, PDF service on the Qt thread), `muzbingo serve`, URL resolver for previews, start page, game page (settings, playlist table with editing, generate, preview, download PDF), token auth, UI tests | ✅ done |
 | **3 — Polish** | Column-mapping dialog, length warnings and bulk cleanup, undo, image upload with downscaling, user templates folder, host sheet | ✅ done |
-| **4 — Host mode** | Mark played songs; verify a card number for one line / two lines / full card | |
+| **4 — Host mode** | Mark played songs; verify a card number for one line / two lines / full card | ✅ done |
 | **5 — Desktop & i18n** | App window (`desktop/window.py`) with native downloads; all strings in `_()` from the start; Dutch `.po` translation and language switch | |
 | **6 — Packaging** | PyInstaller spec, portable Windows zip, Linux tarball, single-instance lock, CI build on GitHub Actions; installer later | |
 

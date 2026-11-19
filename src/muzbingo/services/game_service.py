@@ -20,6 +20,7 @@ from muzbingo.i18n import _
 from muzbingo.importers import ColumnMapping, ImportResult, import_playlist
 from muzbingo.images import ImageError, prepare_image
 from muzbingo.models import Card, Game, Image, Song
+from muzbingo.patterns import CheckResult, Pattern, check_card
 from muzbingo.render import CardTemplate, is_too_long, load_template
 from muzbingo.services.library import Library
 
@@ -300,6 +301,7 @@ class GameService:
         ids = {self.song(song_id).id for song_id in song_ids}  # raises for unknown songs
         with self._change():
             self.game.playlist = [s for s in self.game.playlist if s.id not in ids]
+            self.game.played = [sid for sid in self.game.played if sid not in ids]
 
     # -- bulk cleanup ------------------------------------------------------
 
@@ -350,3 +352,45 @@ class GameService:
         except GenerationError as exc:
             raise ServiceError(str(exc)) from exc
         return cards
+
+    # -- host mode ---------------------------------------------------------
+
+    def is_played(self, song_id: str) -> bool:
+        return song_id in self.game.played
+
+    def set_played(self, song_id: str, played: bool = True) -> None:
+        """Mark a song as played (added at the end of the play order) or not played."""
+        self.song(song_id)  # raises for unknown songs
+        with self._change(f"played:{song_id}"):
+            if played and song_id not in self.game.played:
+                self.game.played.append(song_id)
+            elif not played and song_id in self.game.played:
+                self.game.played.remove(song_id)
+
+    def clear_played(self) -> None:
+        """Start again: no songs played."""
+        with self._change():
+            self.game.played = []
+
+    def played_songs(self) -> list[Song]:
+        """Played songs, in the order they were played."""
+        songs = self.game.songs_by_id()
+        return [songs[sid] for sid in self.game.played if sid in songs]
+
+    def check(self, number: int, pattern: Pattern) -> CheckResult:
+        """Check card ``number`` against the songs played so far."""
+        card = self.game.card(number)
+        if card is None:
+            if not self.game.cards:
+                raise ServiceError(_("There are no cards yet."))
+            raise ServiceError(
+                _("There is no card {number}; the cards are numbered 1 to {n}.").format(
+                    number=number, n=len(self.game.cards)
+                )
+            )
+        return check_card(card, self.game.played, pattern)
+
+    def winners(self, pattern: Pattern) -> list[int]:
+        """Numbers of the cards that have ``pattern`` with the songs played so far."""
+        played = set(self.game.played)
+        return [card.number for card in self.game.cards if check_card(card, played, pattern).won]

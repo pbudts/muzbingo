@@ -12,7 +12,7 @@ from muzbingo.services import GameService, LibraryError
 from muzbingo.ui import context
 from muzbingo.ui.layout import frame
 
-TABS = ("settings", "playlist", "cards")
+TABS = ("settings", "playlist", "cards", "host")
 
 
 class GamePage:
@@ -32,10 +32,14 @@ class GamePage:
         """Like ``on_change``, for parts of the page that are not rebuilt."""
         self._page_listeners.append(listener)
 
-    def changed(self) -> None:
-        """Call after any change, so every panel can update what it shows."""
+    def changed(self, *, skip: Callable[[], None] | None = None) -> None:
+        """Call after any change, so every panel can update what it shows.
+
+        ``skip``: the caller's own listener, when it has already updated itself.
+        """
         for listener in [*self._listeners, *self._page_listeners]:
-            listener()
+            if listener is not skip:
+                listener()
 
     def reset_listeners(self) -> None:
         self._listeners.clear()
@@ -63,6 +67,7 @@ class GamePage:
 
 def register() -> None:
     from muzbingo.ui.components.cards_panel import cards_panel
+    from muzbingo.ui.components.host_panel import host_panel
     from muzbingo.ui.components.playlist_panel import playlist_panel
     from muzbingo.ui.components.settings_panel import settings_panel
 
@@ -89,6 +94,7 @@ def register() -> None:
                 ui.tab("settings", _("Settings"), icon="tune")
                 ui.tab("playlist", _("Playlist"), icon="queue_music")
                 ui.tab("cards", _("Cards"), icon="grid_view")
+                ui.tab("host", _("Host"), icon="campaign")
 
             @ui.refreshable
             def panels() -> None:
@@ -102,6 +108,8 @@ def register() -> None:
                         playlist_panel(page)
                     with ui.tab_panel("cards").classes("p-0"):
                         cards_panel(page)
+                    with ui.tab_panel("host").classes("p-0"):
+                        host_panel(page)
 
             tabs.set_value(tab)
             page.rebuild = panels.refresh

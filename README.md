@@ -16,6 +16,8 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the design and roadmap.
 - Phase 3 (polish): done. Undo/redo, "Shorten titles" (removes "Remastered",
   "feat. …" and the like), automatic downscaling of large pictures, copying a card
   template to make your own, and the host sheet (the playlist as a checklist).
+- Phase 4 (host mode): done. The Host tab: tick off songs while playing, see which
+  cards have one line / two lines / a full card, and check a card number.
 
 ## Setup (development)
 

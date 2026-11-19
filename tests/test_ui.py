@@ -190,3 +190,43 @@ async def test_changed_file_is_reloaded(user: User, library, saved_game):
     library.save(game)
     await user.open(f"/game/{saved_game.id}")
     await user.should_see("Changed elsewhere", marker="page-title")
+
+
+async def test_host_tab(user: User, library, saved_game):
+    from muzbingo.generator import generate_for_game
+
+    generate_for_game(saved_game)
+    library.save(saved_game)
+    row = saved_game.cards[0].cells[0]
+    await user.open(f"/game/{saved_game.id}?tab=host")
+    await user.should_see("0 of 45 songs played")
+    await user.should_see("No card has this yet.")
+
+    grid = user.find(marker="host-grid")
+    for song_id in row:  # play the first row of card 1
+        grid.trigger("cellValueChanged", {"colId": "played", "newValue": True, "data": {"id": song_id}})
+    await user.should_see(f"{len(row)} of 45 songs played")
+    assert library.load(saved_game.id).played == row
+    await user.should_see("These cards have it:")
+
+    user.find(marker="check-number").type("1")
+    user.find(marker="check").click()
+    await user.should_see("Bingo! Card 1 has one line.")
+
+    user.find(marker="pattern").elements.pop().set_value("two_lines")  # the simulated user can't click toggles
+    await user.should_see("Not yet: card 1 needs")
+
+    user.find(marker="check-number").clear().type("999")
+    user.find(marker="check").click()
+    await user.should_see("There is no card 999")
+
+
+async def test_host_tab_untick_and_undo(user: User, library, saved_game):
+    song_id = saved_game.playlist[0].id
+    await user.open(f"/game/{saved_game.id}?tab=host")
+    grid = user.find(marker="host-grid")
+    grid.trigger("cellValueChanged", {"colId": "played", "newValue": True, "data": {"id": song_id}})
+    await user.should_see("1 of 45 songs played")
+    user.find(marker="undo").click()
+    await user.should_see("0 of 45 songs played")
+    assert library.load(saved_game.id).played == []
