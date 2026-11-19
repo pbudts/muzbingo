@@ -144,13 +144,29 @@ class GameService:
         seed: int | None = None,
         language: str | None = None,
         template: str | None = None,
-    ) -> None:
-        """Change settings. ``event_date=None`` clears the date; leave it out to keep it."""
+    ) -> bool:
+        """Change settings. ``event_date=None`` clears the date; leave it out to keep it.
+
+        Changing the grid size regenerates existing cards right away (old cards don't fit
+        the new grid anyway), in the same undo step. Returns True when that happened.
+        """
         fields = [name for name, value in (("title", title), ("rows", rows), ("cols", cols),
                   ("n_cards", n_cards), ("seed", seed), ("language", language), ("template", template))
                   if value is not None] + (["event_date"] if event_date != "" else [])
         with self._change("update:" + ",".join(fields)):
+            old_grid = (self.game.rows, self.game.cols)
             self._update(title, event_date, rows, cols, n_cards, seed, language, template)
+            return self._regenerate_for_new_grid(old_grid)
+
+    def _regenerate_for_new_grid(self, old_grid: tuple[int, int]) -> bool:
+        g = self.game
+        if (g.rows, g.cols) == old_grid or not g.cards or len(g.playlist) < g.songs_per_card:
+            return False
+        try:
+            generate_for_game(g)
+        except GenerationError:
+            return False  # the cards stay marked as out of date, with the reason shown
+        return True
 
     def _update(self, title, event_date, rows, cols, n_cards, seed, language, template) -> None:
         g = self.game

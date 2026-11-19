@@ -61,11 +61,10 @@ def test_settings_that_change_cards(service):
     assert not service.game.cards_outdated
     service.update(title="New title", language="nl")
     assert not service.game.cards_outdated
-    service.update(cols=4)
+    service.update(n_cards=service.game.n_cards + 1)
     assert service.game.cards_outdated
     service.generate()
     assert not service.game.cards_outdated
-    assert all(len(row) == 4 for row in service.game.cards[0].cells)
 
 
 def test_edit_and_reset_song(service):
@@ -174,3 +173,26 @@ def test_pdf_service_across_threads(game):
         thread.join(5)
 
     assert pdf.startswith(b"%PDF")
+
+
+def test_grid_change_regenerates_cards(service):
+    assert service.game.cards and (service.game.rows, service.game.cols) == (4, 5)
+    assert service.update(cols=4) is True
+    game = reload(service)
+    assert all(len(row) == 4 for row in game.cards[0].cells)
+    assert not game.cards_outdated
+    assert service.update(title="Other") is False  # no grid change, no new cards
+
+
+def test_grid_change_without_enough_songs_marks_outdated(service):
+    service.game.playlist = service.game.playlist[:20]
+    service.save()
+    assert service.update(rows=5) is False  # 25 songs needed
+    assert service.game.cards_outdated
+
+
+def test_no_cards_no_generation(service):
+    service.game.cards = []
+    service.save()
+    assert service.update(rows=5) is False
+    assert not service.game.cards

@@ -582,8 +582,12 @@ spinner and the download starts when the PDF is ready; the UI stays usable meanw
 - Changing the songs, grid size or seed invalidates the generated cards.
 - Changing the title, date, background, logo, template or display texts does not
   invalidate them; the next export simply uses the new values.
-- When cards are invalidated, the UI shows a "cards out of date — regenerate?"
-  banner instead of silently regenerating.
+- **Changing the grid size regenerates existing cards right away** (in the same undo
+  step), because cards of the old size can't be used anyway; the UI says so with a
+  message. If the playlist is too small for the new grid, the cards stay out of date.
+- Other changes that invalidate cards (songs added or removed, number of cards,
+  shuffle number) show a "cards out of date — generate new cards" banner instead,
+  so cards that may already be printed don't change silently.
 
 **Testing:**
 - **Automated:** UI logic is tested with NiceGUI's simulated `User` fixture in pytest.

@@ -31,7 +31,11 @@ def settings_panel(page: GamePage) -> None:
 
     def apply(**changes) -> None:
         try:
-            service.update(**changes)
+            if service.update(**changes):
+                ui.notify(
+                    _("New cards generated for the {rows}×{cols} grid.").format(rows=game.rows, cols=game.cols),
+                    type="positive",
+                )
         except (ServiceError, TemplateError, ValueError) as exc:
             notify_error(str(exc))
         page.changed()
@@ -102,7 +106,8 @@ def settings_panel(page: GamePage) -> None:
                 ).tooltip(_("New shuffle number"))
 
         def set_grid(rows: int, cols: int) -> None:
-            rows_input.set_value(rows)
+            apply(rows=rows, cols=cols)  # one change, so the cards are regenerated once
+            rows_input.set_value(rows)  # these trigger no further change: the values match
             cols_input.set_value(cols)
 
         # -- the look ---------------------------------------------------------

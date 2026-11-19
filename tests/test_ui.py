@@ -1,5 +1,7 @@
 """UI tests with NiceGUI's simulated user: fast, no browser needed."""
 
+import asyncio
+
 import pytest
 from nicegui import ui
 from nicegui.testing import User
@@ -28,6 +30,15 @@ def saved_game(library) -> Game:
     game = Game(title="Kerstfeest", rows=4, cols=5, n_cards=6, seed=1, playlist=make_songs(45))
     library.save(game)
     return game
+
+
+async def eventually(condition, timeout: float = 2.0) -> None:
+    """Wait for background UI tasks (async click handlers) to finish."""
+    for _ in range(int(timeout / 0.02)):
+        if condition():
+            return
+        await asyncio.sleep(0.02)
+    assert condition()
 
 
 async def test_empty_library(user: User):
@@ -72,18 +83,27 @@ async def test_generate_cards(user: User, library, saved_game):
     assert len(library.load(saved_game.id).cards) == 6
 
 
-async def test_settings_change_marks_cards_outdated(user: User, library, saved_game):
+async def test_grid_change_regenerates_cards(user: User, library, saved_game):
     from muzbingo.generator import generate_for_game
 
     generate_for_game(saved_game)
     library.save(saved_game)
     await user.open(f"/game/{saved_game.id}?tab=cards")
-    await user.should_not_see(marker="outdated")
     user.find(marker="cards-summary")  # cards are shown
 
     user.find("5×5").click()  # grid preset on the settings tab
-    await user.should_see(marker="outdated")
-    assert library.load(saved_game.id).cols == 5
+    await user.should_see("New cards generated for the 5×5 grid.")
+    await user.should_not_see(marker="outdated")
+    game = library.load(saved_game.id)
+    assert (game.rows, game.cols) == (5, 5)
+    assert len(game.cards[0].cells) == 5 and not game.cards_outdated
+
+    old_cards = [card.cells for card in saved_game.cards]
+    user.find(marker="undo").click()  # one step back: the 4×5 grid with the old cards
+    await eventually(lambda: library.load(saved_game.id).rows == 4)
+    game = library.load(saved_game.id)
+    assert (game.rows, game.cols) == (4, 5)
+    assert [card.cells for card in game.cards] == old_cards
 
 
 async def test_edit_song_in_table(user: User, library, saved_game):
