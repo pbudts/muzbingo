@@ -10,11 +10,15 @@ users never see a browser, URL or port. Everything else lives in ``muzbingo.ui``
 
 from __future__ import annotations
 
+import logging
 import os
 import sys
 from pathlib import Path
 
+from muzbingo import __version__
 from muzbingo.i18n import _
+
+log = logging.getLogger(__name__)
 
 WINDOW_SIZE = (1280, 860)
 
@@ -40,7 +44,14 @@ def run(data_dir: Path | None = None) -> int:
     from PySide6.QtWebEngineWidgets import QWebEngineView
     from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow, QMessageBox
 
+    from muzbingo import paths
+    from muzbingo.desktop.single_instance import SingleInstance
+    from muzbingo.logs import setup_file_logging
     from muzbingo.ui.server import ServerError, start_server
+
+    folder = Path(data_dir).resolve() if data_dir else paths.user_data_dir()
+    log_file = setup_file_logging(folder, capture_streams=paths.is_frozen())
+    log.info("Starting MuzBingo %s, data folder %s", __version__, folder)
 
     QCoreApplication.setAttribute(Qt.ApplicationAttribute.AA_ShareOpenGLContexts)  # before the app
     app = QApplication.instance() or QApplication(sys.argv)
@@ -50,10 +61,16 @@ def run(data_dir: Path | None = None) -> int:
     if icon_path.is_file():
         app.setWindowIcon(QIcon(str(icon_path)))
 
+    instance = SingleInstance(folder)
+    if instance.activate_running():
+        log.info("MuzBingo is already running; showed its window instead")
+        return 0
+
     try:
         running = start_server("127.0.0.1", 0, data_dir)
     except ServerError as exc:
-        QMessageBox.critical(None, "MuzBingo", str(exc))
+        log.error("Could not start the server: %s", exc)
+        QMessageBox.critical(None, "MuzBingo", f"{exc}\n\n{log_file}")
         return 1
     local = QUrl(running.url)
 
@@ -113,10 +130,20 @@ def run(data_dir: Path | None = None) -> int:
     view.load(local)
     window.show()
 
+    def bring_to_front() -> None:  # a second start of MuzBingo asked for this window
+        if window.isMinimized():
+            window.showNormal()
+        window.show()
+        window.raise_()
+        window.activateWindow()
+
+    instance.listen(bring_to_front)
     try:
         return app.exec()
     finally:
+        instance.close()
         running.stop()
+        log.info("MuzBingo stopped")
 
 
 def _same_server(url, local) -> bool:

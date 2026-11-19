@@ -1,0 +1,13 @@
+# Pinned tools to build the app with PyInstaller, on top of the runtime ones.
+# On Windows, pip adds PyInstaller's Windows-only helpers (pefile, pywin32-ctypes).
+#
+#   pip install -r requirements-build.txt
+#   pip install -e . --no-deps
+#   python packaging/build.py
+-r requirements.txt
+altgraph==0.17.5
+Babel==2.18.0
+packaging==26.3
+pyinstaller==6.22.3
+pyinstaller-hooks-contrib==2026.10
+setuptools==84.2.1

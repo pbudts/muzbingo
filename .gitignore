@@ -13,3 +13,6 @@ htmlcov/
 *.pdf
 *.muzbingo
 !tests/data/**
+
+# Local test data (muzbingo serve --data-dir ./testdata)
+testdata/

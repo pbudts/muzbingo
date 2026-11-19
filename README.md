@@ -119,6 +119,41 @@ pytest
 The UI tests use NiceGUI's simulated user (`tests/test_ui.py`), so they need no browser.
 The PDF tests use Qt WebEngine offscreen.
 
+## Building the app
+
+The app is built with PyInstaller into a folder with `MuzBingo.exe` (Windows) or
+`MuzBingo` (Linux) plus an `_internal` folder. PyInstaller can't cross-compile, so build
+the Windows version on Windows and the Linux version on Linux.
+
+**Windows** (PowerShell, in the project folder; Python 3.11 or newer from python.org):
+
+```powershell
+py -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements-build.txt
+pip install -e . --no-deps
+python packaging\build.py
+```
+
+This makes `dist\MuzBingo-<version>-win64-portable.zip`. Unzip it anywhere (also on a
+USB stick) and double-click `MuzBingo.exe`. Because of `portable.txt`, games, settings
+and templates are kept in a `data` folder next to the program; delete `portable.txt` to
+use `%APPDATA%\MuzBingo` instead. The first start may show a SmartScreen warning
+("Windows protected your PC") because the program isn't signed: click **More info →
+Run anyway**.
+
+**Linux:** first `sudo apt install binutils` (PyInstaller needs `objdump`), then the same
+steps with `source .venv/bin/activate` and `python packaging/build.py`. This makes
+`dist/MuzBingo-<version>-linux-x86_64.tar.gz`; data goes to `~/.local/share/MuzBingo`
+(`--portable` keeps it next to the program instead).
+
+**Good to know:**
+- Starting MuzBingo while it is already open brings the open window to the front.
+- The built app has no console. Messages and errors go to `logs/muzbingo.log` in the
+  data folder.
+- The built app is a window app; for the command-line tools (`serve`, `pdf`, …) run
+  MuzBingo from source.
+
 ## Translations
 
 All UI text is written in English and wrapped in `_("…")`. The Dutch translation is

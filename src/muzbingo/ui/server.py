@@ -130,7 +130,7 @@ def serve(host: str = "127.0.0.1", port: int = 8080, data_dir: Path | None = Non
         print("(VS Code Remote-SSH does this automatically: see the Ports panel.)\n")
     print(f"Games are stored in: {paths.games_dir()}")
     print(f"Your own card templates go in: {paths.user_templates_dir()}")
-    print("Press Ctrl+C to stop.")
+    print("Press Ctrl+C to stop.", flush=True)  # the link must show up even when output is piped
 
     app = QApplication.instance()
     signal.signal(signal.SIGINT, lambda *_: app.quit())

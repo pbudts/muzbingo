@@ -170,8 +170,11 @@ muzbingo/
 │   │       ├── playlist_panel.py   # editable table with length warnings + import dialog
 │   │       ├── cards_panel.py      # generate, preview (iframe), download PDF
 │   │       └── host_panel.py       # mark played songs, possible winners, check a card number
+│   ├── logs.py                  # log file in the data folder (windowed app has no console)
 │   ├── desktop/
-│   │   └── window.py            # QMainWindow + QWebEngineView pointing at the local server
+│   │   ├── window.py            # QMainWindow + QWebEngineView pointing at the local server
+│   │   ├── single_instance.py   # second start brings the open window to the front
+│   │   └── icon.svg
 │   ├── i18n/
 │   │   ├── __init__.py          # _() / ngettext(), current language
 │   │   └── locale/nl/LC_MESSAGES/muzbingo.po (+ compiled .mo)
@@ -666,19 +669,28 @@ Share:     My games: Download → game.muzbingo (all data incl. pictures) → Im
   runtime to a temp folder on every start, which is slow and sometimes blocked by
   antivirus. Onedir starts quickly and is still "portable" as a folder.
 - **Build on each platform.** PyInstaller doesn't cross-compile, so the Windows build
-  is made on Windows. A GitHub Actions workflow with a `windows-latest` runner can build
-  the zip automatically on each tagged release.
-- **Bundled files.** The `.spec` file bundles:
-  - `templates/`
-  - `i18n/**/*.mo`
-  - NiceGUI's own static files (via `collect_data_files("nicegui")`)
-
-  `paths.py` finds them via `sys._MEIPASS` / `__file__`, so the same code runs from
-  source and from the build.
-- **No console window.** The Windows build is a windowed app (`console=False`). Logs go
-  to `<data folder>/logs/`.
-- **Single instance.** A lock file in the data folder makes a second start bring the
-  existing window to the front instead of starting another server (phase 6).
+  is made on Windows: `python packaging/build.py` (see README, "Building the app"). A
+  GitHub Actions workflow with a `windows-latest` runner could do this automatically
+  later; for now the Windows zip is built by hand.
+- **Files:** `packaging/muzbingo.spec` (PyInstaller), `packaging/muzbingo_main.py`
+  (entry point), `packaging/build.py` (compiles translations, makes the `.ico`, runs
+  PyInstaller, adds `portable.txt` on Windows, makes the zip/tarball),
+  `requirements-build.txt` (pinned build tools).
+- **Bundled files.** The spec bundles the `muzbingo` package data (card templates, the
+  host sheet template, compiled translations, the icon). NiceGUI's web assets come
+  from the hook in `pyinstaller-hooks-contrib`. `paths.py` finds them via
+  `sys._MEIPASS` / `__file__`, so the same code runs from source and from the build.
+- **Size.** Qt WebEngine (Chromium) is most of it. PyInstaller's QML hook also
+  collects every QML plugin and with them Qt 3D, Charts, Multimedia, Quick3D, …; the
+  spec leaves those out, plus Chromium and Qt translations other than English and
+  Dutch. Linux: 633 → 464 MB unpacked, 194 MB as tarball.
+- **No console window.** The Windows build is a windowed app (`console=False`). In the
+  app window, stdout/stderr and uncaught exceptions go to `<data folder>/logs/
+  muzbingo.log` (rotating, `logs.py`).
+- **Single instance.** The first window listens on a local socket (`QLocalServer`, a
+  named pipe on Windows) named after the user and data folder. A second start asks it
+  to come to the front and exits (`desktop/single_instance.py`). A copy with another
+  `--data-dir` runs separately.
 - **Code signing.** Unsigned executables may trigger a Windows SmartScreen warning on
   first run ("More info → Run anyway"). Code signing can be added later if needed.
 - **Firewall.** The server only listens on `127.0.0.1`, so Windows Firewall shows no
@@ -696,7 +708,7 @@ Share:     My games: Download → game.muzbingo (all data incl. pictures) → Im
 | **3 — Polish** | Column-mapping dialog, length warnings and bulk cleanup, undo, image upload with downscaling, user templates folder, host sheet | ✅ done |
 | **4 — Host mode** | Mark played songs; verify a card number for one line / two lines / full card | ✅ done |
 | **5 — Desktop & i18n** | App window (`desktop/window.py`) with native downloads; all strings in `_()` from the start; Dutch `.po` translation and language switch | ✅ done |
-| **6 — Packaging** | PyInstaller spec, portable Windows zip, Linux tarball, single-instance lock, CI build on GitHub Actions; installer later | |
+| **6 — Packaging** | PyInstaller spec, portable Windows zip, Linux tarball, single-instance lock; CI build on GitHub Actions and an installer later | ✅ done (Windows zip built by hand) |
 
 ---
 

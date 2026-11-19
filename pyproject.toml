@@ -21,6 +21,10 @@ dev = [
     "pytest-asyncio>=0.23",
     "Babel>=2.12",  # extract and compile translations
 ]
+build = [
+    "pyinstaller>=6.10",
+    "Babel>=2.12",
+]
 
 [project.scripts]
 muzbingo = "muzbingo.cli:main"
