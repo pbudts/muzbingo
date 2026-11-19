@@ -3,6 +3,7 @@
 #   pip install -r requirements-dev.txt
 #   pip install -e . --no-deps
 -r requirements.txt
+Babel==2.18.0
 iniconfig==2.3.1
 packaging==26.3
 pluggy==1.7.0

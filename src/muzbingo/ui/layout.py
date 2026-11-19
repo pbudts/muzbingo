@@ -7,7 +7,8 @@ from collections.abc import Callable
 
 from nicegui import ui
 
-from muzbingo.i18n import _
+from muzbingo import settings
+from muzbingo.i18n import LANGUAGES, _, current_language
 
 ACCENT = "#d1006f"
 
@@ -33,10 +34,27 @@ def frame(
         if title:
             ui.label("·").classes("opacity-50")
             label = ui.label(title).classes("text-lg").mark("page-title")
+        ui.space()
         if actions:
-            ui.space()
             actions()
+        language_menu()
     return label
+
+
+def language_menu() -> None:
+    def choose(language: str) -> None:
+        from muzbingo.ui.app import apply_language
+
+        settings.update(ui_language=language)
+        apply_language(language)
+        ui.navigate.reload()
+
+    with ui.button(icon="translate").props("flat round color=white").tooltip(_("Language")).mark("language"):
+        with ui.menu():
+            for code, name in LANGUAGES.items():
+                item = ui.menu_item(name, on_click=lambda c=code: choose(c)).mark(f"language-{code}")
+                if code == current_language():
+                    item.classes("font-bold")
 
 
 def safe_filename(text: str, suffix: str) -> str:

@@ -69,7 +69,7 @@ def test_context_uses_display_texts(game, classic):
 
 def test_context_errors(game, classic):
     game.playlist.clear()  # the cards now refer to songs that no longer exist
-    with pytest.raises(RenderError, match="regenerate"):
+    with pytest.raises(RenderError, match="no longer in the playlist"):
         build_context(game, classic)
     game.cards = []
     with pytest.raises(RenderError, match="generate the cards"):

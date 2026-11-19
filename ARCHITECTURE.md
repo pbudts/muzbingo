@@ -133,7 +133,7 @@ muzbingo/
 │   ├── cli.py                   # commands: (none) = app window, serve, inspect, new, pdf, templates
 │   ├── models.py                # Game, Song, Card, Image dataclasses + (de)serialization
 │   ├── paths.py                 # app/data/template/library locations, portable-mode detection
-│   ├── settings.py              # user settings (UI language, last template, …) as JSON (phase 5)
+│   ├── settings.py              # user settings (UI language, last template/grid/cards) as JSON
 │   ├── importers/
 │   │   ├── __init__.py          # import_playlist(path, mapping=None) dispatcher
 │   │   ├── base.py              # column detection, normalisation, dedupe
@@ -604,7 +604,8 @@ spinner and the download starts when the PDF is ready; the UI stays usable meanw
   It is fast and needs no browser.
 - **Manual:** use `muzbingo serve` from any browser.
 - **App window:** checked manually on a desktop machine (Windows/Linux) before each
-  release.
+  release. On the headless development machine it can be driven offscreen
+  (`QT_QPA_PLATFORM=offscreen`) to check startup, downloads and external links.
 
 ### 4.8 Internationalisation, settings & portability
 - **UI translation:**
@@ -614,8 +615,11 @@ spinner and the download starts when the PDF is ready; the UI stays usable meanw
     or any text editor, and are compiled to `.mo` with `pybabel compile`. The compiled
     `.mo` files are included in builds.
   - The language is chosen in the top bar. The default is the system locale, falling
-    back to English. The choice is stored in the settings and takes effect on the next
-    page load.
+    back to English. The choice is stored in the settings and the page reloads in the
+    new language. Quasar's own texts (e.g. the date picker) follow through NiceGUI's
+    `app.config.language`. Core error messages shown in the UI are translated too.
+  - `tests/test_i18n.py` checks that every `_()` text is in the Dutch catalog, that the
+    `{placeholders}` match, and that the compiled `.mo` is up to date.
 - **Card language** is separate from the UI language. It is stored per game, because
   you might run a Dutch UI and print English cards.
 - **Data folder** (decided once, in `paths.py`):
@@ -691,7 +695,7 @@ Share:     My games: Download → game.muzbingo (all data incl. pictures) → Im
 | **2 — Web UI MVP** | Services (library with autosave, game service, PDF service on the Qt thread), `muzbingo serve`, URL resolver for previews, start page, game page (settings, playlist table with editing, generate, preview, download PDF), token auth, UI tests | ✅ done |
 | **3 — Polish** | Column-mapping dialog, length warnings and bulk cleanup, undo, image upload with downscaling, user templates folder, host sheet | ✅ done |
 | **4 — Host mode** | Mark played songs; verify a card number for one line / two lines / full card | ✅ done |
-| **5 — Desktop & i18n** | App window (`desktop/window.py`) with native downloads; all strings in `_()` from the start; Dutch `.po` translation and language switch | |
+| **5 — Desktop & i18n** | App window (`desktop/window.py`) with native downloads; all strings in `_()` from the start; Dutch `.po` translation and language switch | ✅ done |
 | **6 — Packaging** | PyInstaller spec, portable Windows zip, Linux tarball, single-instance lock, CI build on GitHub Actions; installer later | |
 
 ---

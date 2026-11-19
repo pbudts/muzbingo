@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 
 from muzbingo.models import FORMAT_VERSION, Game, utc_now
+from muzbingo.i18n import _
 
 FILE_EXTENSION = ".muzbingo"
 
@@ -24,18 +25,20 @@ def game_from_json(text: str | bytes, name: str = "game file") -> Game:
     try:
         data = json.loads(text)
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise StorageError(f"Could not read {name}: {exc}") from exc
+        raise StorageError(_("Could not read {name}: {error}").format(name=name, error=exc)) from exc
 
     version = data.get("format_version") if isinstance(data, dict) else None
     if not isinstance(version, int):
-        raise StorageError(f"{name} is not a MuzBingo game file")
+        raise StorageError(_("{name} is not a MuzBingo game file").format(name=name))
     if version > FORMAT_VERSION:
-        raise StorageError(f"{name} was made with a newer version of MuzBingo; please update the app")
+        raise StorageError(
+            _("{name} was made with a newer version of MuzBingo; please update the app").format(name=name)
+        )
     # Future: migrate older versions here, one step at a time.
     try:
         return Game.from_dict(data)
     except (KeyError, TypeError, ValueError) as exc:
-        raise StorageError(f"{name} is damaged: {exc}") from exc
+        raise StorageError(_("{name} is damaged: {error}").format(name=name, error=exc)) from exc
 
 
 def save_game(game: Game, path: str | Path) -> Path:
@@ -49,7 +52,7 @@ def save_game(game: Game, path: str | Path) -> Path:
         os.replace(tmp, path)
     except OSError as exc:
         tmp.unlink(missing_ok=True)
-        raise StorageError(f"Could not save {path.name}: {exc}") from exc
+        raise StorageError(_("Could not save {name}: {error}").format(name=path.name, error=exc)) from exc
     return path
 
 
@@ -58,5 +61,5 @@ def load_game(path: str | Path) -> Game:
     try:
         raw = path.read_bytes()
     except OSError as exc:
-        raise StorageError(f"Could not read {path.name}: {exc}") from exc
+        raise StorageError(_("Could not read {name}: {error}").format(name=path.name, error=exc)) from exc
     return game_from_json(raw, path.name)

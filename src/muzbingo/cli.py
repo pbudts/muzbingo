@@ -1,4 +1,7 @@
-"""Command-line interface, to use and test the core without the GUI.
+"""Command-line interface.
+
+``muzbingo`` without a command opens the app window. The commands below use and
+test the core without the GUI.
 
 Examples::
 
@@ -116,6 +119,13 @@ def cmd_hostsheet(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_app(args: argparse.Namespace) -> int:
+    from muzbingo.desktop.window import run
+
+    data_dir = getattr(args, "data_dir", None)
+    return run(Path(data_dir) if data_dir else None)
+
+
 def cmd_serve(args: argparse.Namespace) -> int:
     from muzbingo.ui.server import serve
 
@@ -144,7 +154,12 @@ def cmd_templates(args: argparse.Namespace) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="muzbingo", description="Create music bingo cards.")
-    sub = parser.add_subparsers(dest="command", required=True)
+    parser.set_defaults(func=cmd_app)  # no command: open the app window
+    sub = parser.add_subparsers(dest="command")
+
+    p = sub.add_parser("app", help="open the app window (the default)")
+    p.add_argument("--data-dir", help="folder for games and settings (default: the user data folder)")
+    p.set_defaults(func=cmd_app)
 
     def add_import_args(p: argparse.ArgumentParser) -> None:
         p.add_argument("playlist", help="CSV or Excel file with titles and artists")

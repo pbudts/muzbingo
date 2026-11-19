@@ -4,11 +4,26 @@ from __future__ import annotations
 
 from nicegui import events, ui
 
-from muzbingo.i18n import _
+from muzbingo import settings
+from muzbingo.i18n import _, current_language
+from muzbingo.render import TemplateError, load_template
 from muzbingo.services import LibraryError
 from muzbingo.storage import FILE_EXTENSION
 from muzbingo.ui import context
 from muzbingo.ui.layout import frame, notify_error, safe_filename
+
+
+def new_game_defaults() -> dict:
+    """A new game starts with the last used template, grid and number of cards."""
+    remembered = settings.get()
+    defaults = {"rows": remembered.rows, "cols": remembered.cols, "n_cards": remembered.n_cards,
+                "language": current_language()}
+    try:
+        load_template(remembered.template)
+        defaults["template"] = remembered.template
+    except TemplateError:
+        pass  # e.g. a user template that was removed: keep the default
+    return defaults
 
 
 def register() -> None:
@@ -91,7 +106,7 @@ def register() -> None:
             name = await dialog
             if name is None:
                 return
-            game = library.create(name or _("Music Bingo"))
+            game = library.create(name or _("Music Bingo"), **new_game_defaults())
             ui.navigate.to(f"/game/{game.id}?tab=playlist")
 
         async def import_game(e: events.UploadEventArguments) -> None:

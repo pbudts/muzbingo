@@ -11,6 +11,7 @@ from typing import Any
 
 from muzbingo.models import Card, Game, Song
 from muzbingo.render.templates import CardTemplate
+from muzbingo.i18n import _
 
 MONTHS_SHORT = {
     "en": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
@@ -85,7 +86,7 @@ def build_context(
     """Template data for ``cards`` (default: all cards of the game)."""
     selected = game.cards if cards is None else cards
     if not selected:
-        raise RenderError("There are no cards to print; generate the cards first")
+        raise RenderError(_("There are no cards to print; generate the cards first"))
 
     songs = game.songs_by_id()
     budget = template.char_budget(game.cols)
@@ -98,8 +99,8 @@ def build_context(
                 song = songs.get(song_id)
                 if song is None:
                     raise RenderError(
-                        f"Card {card.number} contains a song that is no longer in the playlist; "
-                        "regenerate the cards"
+                        _("Card {number} contains a song that is no longer in the playlist; "
+                          "generate new cards").format(number=card.number)
                     )
                 cells.append(
                     {

@@ -19,6 +19,7 @@ dependencies = [
 dev = [
     "pytest>=8",
     "pytest-asyncio>=0.23",
+    "Babel>=2.12",  # extract and compile translations
 ]
 
 [project.scripts]
@@ -28,7 +29,7 @@ muzbingo = "muzbingo.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-muzbingo = ["templates/**/*", "render/*.j2", "i18n/*.qm"]
+muzbingo = ["templates/**/*", "render/*.j2", "i18n/locale/**/*.mo", "desktop/*.svg"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

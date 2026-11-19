@@ -12,6 +12,7 @@ import random
 from collections.abc import Sequence
 
 from muzbingo.models import Card, Game, Song
+from muzbingo.i18n import _
 
 MAX_RETRIES = 1000
 
@@ -31,18 +32,22 @@ def generate_cards(
     per_card = rows * cols
 
     if rows < 1 or cols < 1:
-        raise GenerationError("The grid needs at least one row and one column")
+        raise GenerationError(_("The grid needs at least one row and one column"))
     if n_cards < 1:
-        raise GenerationError("The number of cards must be at least 1")
+        raise GenerationError(_("The number of cards must be at least 1"))
     if len(set(ids)) != len(ids):
-        raise GenerationError("The playlist contains duplicate songs")
+        raise GenerationError(_("The playlist contains duplicate songs"))
     if len(ids) < per_card:
         raise GenerationError(
-            f"A {rows}×{cols} card needs {per_card} songs, but the playlist has only {len(ids)}"
+            _("A {rows}×{cols} card needs {needed} songs, but the playlist has only {n}").format(
+                rows=rows, cols=cols, needed=per_card, n=len(ids)
+            )
         )
     if math.comb(len(ids), per_card) < n_cards:
         raise GenerationError(
-            f"Only {math.comb(len(ids), per_card)} different cards are possible with this playlist"
+            _("Only {n} different cards are possible with this playlist").format(
+                n=math.comb(len(ids), per_card)
+            )
         )
 
     rng = random.Random(seed)
@@ -74,7 +79,7 @@ def generate_cards(
             retries += 1
             if retries > MAX_RETRIES:
                 raise GenerationError(
-                    "Could not generate enough different cards; add songs or use fewer cards"
+                    _("Could not generate enough different cards; add songs or use fewer cards")
                 )
             continue
         seen.add(key)

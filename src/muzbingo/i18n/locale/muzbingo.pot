@@ -1,0 +1,660 @@
+# Translations template for MuzBingo.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the MuzBingo project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: MuzBingo VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-11-19 17:44+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+msgid "(removed song)"
+msgstr ""
+
+#, python-brace-format
+msgid "A {rows}×{cols} card needs {needed} songs, but the playlist has only {n}"
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"A {rows}×{cols} card needs {needed} songs; the playlist has {n}. Add "
+"songs or use a smaller grid."
+msgstr ""
+
+msgid "Add"
+msgstr ""
+
+msgid "Add a song"
+msgstr ""
+
+#, python-brace-format
+msgid "Add a {ext} file, for example one you downloaded on another computer."
+msgstr ""
+
+msgid "Add song"
+msgstr ""
+
+msgid "Add to the current playlist instead of replacing it"
+msgstr ""
+
+msgid "After the import you will need to generate new cards."
+msgstr ""
+
+msgid ""
+"All cards change. Cards you already printed will no longer match this "
+"game."
+msgstr ""
+
+msgid "All songs are marked as not played. You can undo this."
+msgstr ""
+
+msgid ""
+"All texts fit on the cards. Switch off \"Only songs that are too long\" "
+"to see all songs."
+msgstr ""
+
+#, python-brace-format
+msgid "Already in the playlist: {artist} – {title}"
+msgstr ""
+
+msgid "Artist"
+msgstr ""
+
+msgid "Artist (on the card)"
+msgstr ""
+
+msgid "Artist column"
+msgstr ""
+
+msgid "Back to My games"
+msgstr ""
+
+msgid "Background picture"
+msgstr ""
+
+#, python-brace-format
+msgid "Bingo! Card {number} has {pattern}."
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Card number"
+msgstr ""
+
+msgid "Card preview"
+msgstr ""
+
+msgid "Card template"
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"Card {number} contains a song that is no longer in the playlist; generate"
+" new cards"
+msgstr ""
+
+msgid "Cards"
+msgstr ""
+
+msgid "Check"
+msgstr ""
+
+msgid "Check a card"
+msgstr ""
+
+msgid ""
+"Choose a **CSV** or **Excel** file with a title and an artist column.\n"
+"\n"
+"From Spotify: export the playlist as CSV, for example with "
+"[Exportify](https://exportify.app), and choose that file here."
+msgstr ""
+
+msgid "Choose a picture"
+msgstr ""
+
+msgid "Choose two different columns."
+msgstr ""
+
+msgid "Click + to choose a file, or drop it here"
+msgstr ""
+
+msgid ""
+"Click a title or artist to change what is printed on the cards. The "
+"original stays saved."
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+#, python-brace-format
+msgid "Column not found: {column}"
+msgstr ""
+
+msgid "Columns"
+msgstr ""
+
+#, python-brace-format
+msgid "Complete rows: {rows}."
+msgstr ""
+
+#, python-brace-format
+msgid "Copied to {path}"
+msgstr ""
+
+msgid "Copy"
+msgstr ""
+
+msgid "Copy the card template"
+msgstr ""
+
+msgid "Could not generate enough different cards; add songs or use fewer cards"
+msgstr ""
+
+#, python-brace-format
+msgid "Could not open the Excel file: {error}"
+msgstr ""
+
+#, python-brace-format
+msgid "Could not read {name}: {error}"
+msgstr ""
+
+#, python-brace-format
+msgid "Could not save the file: {error}"
+msgstr ""
+
+#, python-brace-format
+msgid "Could not save {name}: {error}"
+msgstr ""
+
+msgid "Create"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+#, python-brace-format
+msgid "Delete \"{title}\"?"
+msgstr ""
+
+#, python-brace-format
+msgid "Delete {n} songs?"
+msgstr ""
+
+msgid "Download PDF"
+msgstr ""
+
+msgid "Download game file"
+msgstr ""
+
+msgid "Download host sheet"
+msgstr ""
+
+msgid "Duplicate"
+msgstr ""
+
+msgid "Enter both a title and an artist"
+msgstr ""
+
+msgid "Event"
+msgstr ""
+
+msgid "Event date"
+msgstr ""
+
+msgid "Full card"
+msgstr ""
+
+msgid "Generate"
+msgstr ""
+
+msgid "Generate cards"
+msgstr ""
+
+msgid "Generate new cards"
+msgstr ""
+
+msgid "Generate new cards?"
+msgstr ""
+
+msgid "Generate the cards first (Cards tab)."
+msgstr ""
+
+msgid "Green: played. Dark green: complete row. Outlined: still needed."
+msgstr ""
+
+msgid "Grid"
+msgstr ""
+
+msgid "Host"
+msgstr ""
+
+msgid "Host sheet: songs in"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Import a game file"
+msgstr ""
+
+msgid "Import playlist"
+msgstr ""
+
+#, python-brace-format
+msgid "Imported \"{title}\""
+msgstr ""
+
+#, python-brace-format
+msgid "Imported {n} songs."
+msgstr ""
+
+msgid "Language"
+msgstr ""
+
+msgid "Language on the cards"
+msgstr ""
+
+msgid "Logo"
+msgstr ""
+
+msgid "Look"
+msgstr ""
+
+msgid "Make a copy of this template to change its layout"
+msgstr ""
+
+msgid "Music Bingo"
+msgstr ""
+
+msgid "My games"
+msgstr ""
+
+msgid "Name of the copy"
+msgstr ""
+
+#, python-brace-format
+msgid "New cards generated for the {rows}×{cols} grid."
+msgstr ""
+
+msgid "New game"
+msgstr ""
+
+msgid "New shuffle number"
+msgstr ""
+
+msgid "No card has this yet."
+msgstr ""
+
+msgid "No cards yet."
+msgstr ""
+
+msgid "No games yet. Create your first game to get started."
+msgstr ""
+
+msgid "No songs found in the file"
+msgstr ""
+
+msgid "No songs yet. Import a playlist on the Playlist tab."
+msgstr ""
+
+msgid "No songs yet. Import a playlist to get started."
+msgstr ""
+
+msgid ""
+"No titles to shorten: none of them end in “Remastered”, “feat. …”, “Radio"
+" Edit” and the like."
+msgstr ""
+
+#, python-brace-format
+msgid "Not yet: card {number} needs {missing} more songs for {pattern}."
+msgstr ""
+
+msgid "Nothing to redo"
+msgstr ""
+
+msgid "Nothing to undo"
+msgstr ""
+
+msgid "Now"
+msgstr ""
+
+msgid "Number of cards"
+msgstr ""
+
+msgid "One line"
+msgstr ""
+
+msgid "Only songs that are too long"
+msgstr ""
+
+msgid "Only the printed text changes; the original title stays saved."
+msgstr ""
+
+#, python-brace-format
+msgid "Only {n} different cards are possible with this playlist"
+msgstr ""
+
+msgid "Open"
+msgstr ""
+
+msgid "Order"
+msgstr ""
+
+msgid "Original (if edited)"
+msgstr ""
+
+msgid "PDF export is not available: Qt WebEngine could not be started."
+msgstr ""
+
+msgid "Play order (shuffled)"
+msgstr ""
+
+msgid "Played"
+msgstr ""
+
+msgid "Playlist"
+msgstr ""
+
+msgid "Playlist order"
+msgstr ""
+
+msgid "Please choose a PNG, JPG, SVG or WebP picture."
+msgstr ""
+
+msgid "Preview of card"
+msgstr ""
+
+msgid "Print the original title and artist again for the selected songs"
+msgstr ""
+
+msgid "Redo (Ctrl+Y)"
+msgstr ""
+
+msgid "Remove “Remastered”, “feat. …”, “Radio Edit” and the like from the titles"
+msgstr ""
+
+msgid "Rows"
+msgstr ""
+
+msgid "Save as"
+msgstr ""
+
+#, python-brace-format
+msgid "Saved: {path}"
+msgstr ""
+
+msgid "Search title or artist"
+msgstr ""
+
+msgid "Select songs first, with the checkboxes in front of them."
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+#, python-brace-format
+msgid "Sheet not found: {sheet}"
+msgstr ""
+
+msgid "Shorten selected titles"
+msgstr ""
+
+msgid "Shorten titles"
+msgstr ""
+
+msgid "Shortened"
+msgstr ""
+
+#, python-brace-format
+msgid "Show card {number}"
+msgstr ""
+
+msgid "Shuffle number"
+msgstr ""
+
+msgid "Sorted by artist"
+msgstr ""
+
+msgid "Sorted by title"
+msgstr ""
+
+msgid "Start again"
+msgstr ""
+
+msgid "Start again?"
+msgstr ""
+
+msgid "Template default"
+msgstr ""
+
+msgid ""
+"The copy goes to your templates folder. Change its style.css, "
+"cards.html.j2 and pictures there with a text editor; the preview shows "
+"the result."
+msgstr ""
+
+msgid "The file is empty"
+msgstr ""
+
+msgid "The game is moved to the trash folder in the MuzBingo data folder."
+msgstr ""
+
+msgid "The grid needs at least one row and one column"
+msgstr ""
+
+msgid "The number of cards must be at least 1"
+msgstr ""
+
+#, python-brace-format
+msgid "The picture was made smaller for printing ({before} → {after} MB)."
+msgstr ""
+
+msgid "The playlist as a checklist, to tick off the songs you played"
+msgstr ""
+
+msgid "The playlist contains duplicate songs"
+msgstr ""
+
+msgid "The playlist is empty"
+msgstr ""
+
+msgid ""
+"The playlist or the card settings changed since these cards were made. "
+"Generate new cards before printing."
+msgstr ""
+
+msgid "The same shuffle number always gives the same cards."
+msgstr ""
+
+msgid ""
+"The settings changed after these cards were made. Check only with the "
+"cards you printed from them."
+msgstr ""
+
+msgid "The sheet is empty"
+msgstr ""
+
+msgid "There are no cards to print; generate the cards first"
+msgstr ""
+
+msgid "There are no cards yet."
+msgstr ""
+
+#, python-brace-format
+msgid "There is no card {number}; the cards are numbered 1 to {n}."
+msgstr ""
+
+msgid "These cards have it:"
+msgstr ""
+
+msgid ""
+"These titles end in release details, like “Remastered 2011” or “feat. …”."
+" Untick the ones you want to keep as they are."
+msgstr ""
+
+msgid "This game does not exist (anymore)"
+msgstr ""
+
+#, python-brace-format
+msgid "This picture could not be read: {error}"
+msgstr ""
+
+msgid "This picture is too large (max. 25 MB)."
+msgstr ""
+
+msgid "This round"
+msgstr ""
+
+msgid "This song is already in the playlist"
+msgstr ""
+
+msgid "This song is no longer in the playlist"
+msgstr ""
+
+msgid "Tick a song when you play it. Ctrl+Z undoes a tick."
+msgstr ""
+
+msgid "Tip: a logo with a transparent background (PNG or SVG) looks best."
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"Tip: with fewer than {double} songs, cards look much alike and games end "
+"quickly."
+msgstr ""
+
+msgid "Title"
+msgstr ""
+
+msgid "Title (on the card)"
+msgstr ""
+
+msgid "Title column"
+msgstr ""
+
+msgid "Too long for a cell"
+msgstr ""
+
+msgid "Two lines"
+msgstr ""
+
+msgid "Undo (Ctrl+Z)"
+msgstr ""
+
+#, python-brace-format
+msgid "Unknown card language: {language}"
+msgstr ""
+
+msgid "Unknown text encoding (expected UTF-8 or Windows-1252)"
+msgstr ""
+
+#, python-brace-format
+msgid "Unsupported file type: {type}"
+msgstr ""
+
+msgid "Use original text"
+msgstr ""
+
+msgid "Use the template default"
+msgstr ""
+
+msgid "When the song was played: 1 = first"
+msgstr ""
+
+msgid "Which columns hold the song title and the artist?"
+msgstr ""
+
+msgid "YYYY-MM-DD"
+msgstr ""
+
+#, python-brace-format
+msgid "Your own templates: {path}"
+msgstr ""
+
+msgid "e.g. Christmas party 2026"
+msgstr ""
+
+#, python-brace-format
+msgid "{label} must be between {low} and {high}"
+msgstr ""
+
+#, python-brace-format
+msgid "{name} (my copy)"
+msgstr ""
+
+#, python-brace-format
+msgid "{name} is damaged: {error}"
+msgstr ""
+
+#, python-brace-format
+msgid "{name} is not a MuzBingo game file"
+msgstr ""
+
+#, python-brace-format
+msgid "{name} was made with a newer version of MuzBingo; please update the app"
+msgstr ""
+
+#, python-brace-format
+msgid "{needed} per card"
+msgstr ""
+
+#, python-brace-format
+msgid "{n} cards"
+msgstr ""
+
+#, python-brace-format
+msgid "{n} cards generated."
+msgstr ""
+
+#, python-brace-format
+msgid "{n} cards of {rows}×{cols}"
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"{n} of them are on the generated cards; you will need to generate new "
+"cards."
+msgstr ""
+
+#, python-brace-format
+msgid "{n} rows were skipped (empty or duplicate)."
+msgstr ""
+
+#, python-brace-format
+msgid "{n} songs"
+msgstr ""
+
+#, python-brace-format
+msgid "{n} titles shortened."
+msgstr ""
+
+#, python-brace-format
+msgid "{pattern} on card {cards}!"
+msgstr ""
+
+#, python-brace-format
+msgid "{played} of {n} songs played"
+msgstr ""
+
+#, python-brace-format
+msgid "{title} (copy)"
+msgstr ""
+
+#, python-brace-format
+msgid "{title} - host sheet"
+msgstr ""
+
+#, python-brace-format
+msgid "⚠ {n} too long for a cell: click a title or artist to shorten it"
+msgstr ""
+

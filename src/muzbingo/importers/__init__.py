@@ -23,6 +23,7 @@ from muzbingo.importers.base import (
 )
 from muzbingo.importers.csv_importer import read_csv
 from muzbingo.importers.excel_importer import read_xlsx
+from muzbingo.i18n import _
 
 SUPPORTED_EXTENSIONS = (".csv", ".txt", ".xlsx", ".xlsm")
 
@@ -46,7 +47,7 @@ def read_table(path: str | Path, sheet: str | None = None) -> tuple[list[str], l
         return read_csv(path)
     if suffix in (".xlsx", ".xlsm"):
         return read_xlsx(path, sheet)
-    raise PlaylistImportError(f"Unsupported file type: {suffix or path.name}")
+    raise PlaylistImportError(_("Unsupported file type: {type}").format(type=suffix or path.name))
 
 
 def import_playlist(

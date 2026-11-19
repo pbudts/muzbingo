@@ -10,7 +10,7 @@ from nicegui import events, run, ui
 
 from muzbingo.i18n import _
 from muzbingo.models import IMAGE_MIME_TYPES, Image, new_seed
-from muzbingo import paths
+from muzbingo import paths, settings
 from muzbingo.render import HttpUrls, TemplateError, list_templates
 from muzbingo.render.templates import copy_template
 from muzbingo.services import ServiceError
@@ -29,6 +29,8 @@ def settings_panel(page: GamePage) -> None:
     service = page.service
     game = service.game
 
+    remembered = ("template", "rows", "cols", "n_cards")
+
     def apply(**changes) -> None:
         try:
             if service.update(**changes):
@@ -38,6 +40,9 @@ def settings_panel(page: GamePage) -> None:
                 )
         except (ServiceError, TemplateError, ValueError) as exc:
             notify_error(str(exc))
+        else:
+            if any(name in changes for name in remembered):  # new games start like this one
+                settings.update(**{name: getattr(game, name) for name in remembered})
         page.changed()
 
     def on_date(value: str | None) -> None:
@@ -60,7 +65,7 @@ def settings_panel(page: GamePage) -> None:
                 _("Event date"),
                 value=game.event_date.isoformat() if game.event_date else "",
                 on_change=lambda e: on_date(e.value),
-            ).props('clearable mask="####-##-##" placeholder="YYYY-MM-DD"').classes("w-full") as date_input:
+            ).props(f'clearable mask="####-##-##" placeholder="{_("YYYY-MM-DD")}"').classes("w-full") as date_input:
                 with ui.menu().props("no-parent-event") as date_menu:
                     ui.date(mask="YYYY-MM-DD").bind_value(date_input).props("first-day-of-week=1")
                 with date_input.add_slot("append"):

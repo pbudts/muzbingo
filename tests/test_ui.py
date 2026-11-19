@@ -230,3 +230,36 @@ async def test_host_tab_untick_and_undo(user: User, library, saved_game):
     user.find(marker="undo").click()
     await user.should_see("0 of 45 songs played")
     assert library.load(saved_game.id).played == []
+
+
+async def test_switch_to_dutch(user: User):
+    from muzbingo import settings
+
+    await user.open("/")
+    user.find(marker="language").click()
+    user.find(marker="language-nl").click()
+    await user.open("/")  # the switch reloads the page
+    await user.should_see("Mijn spellen")
+    assert settings.get().ui_language == "nl"
+
+
+async def test_new_game_uses_remembered_settings(user: User, library):
+    from muzbingo import settings
+
+    settings.update(rows=5, cols=5, n_cards=12)
+    await user.open("/")
+    user.find(marker="new-game").click()
+    await user.should_see(marker="new-title")
+    user.find(marker="new-title").type("Quiz")
+    user.find(marker="create").click()
+    await user.should_see(marker="playlist-grid")
+    game = library.load(library.list()[0].id)
+    assert (game.rows, game.cols, game.n_cards) == (5, 5, 12)
+
+
+async def test_settings_change_is_remembered(user: User, saved_game):
+    from muzbingo import settings
+
+    await user.open(f"/game/{saved_game.id}")
+    user.find("5×5").click()
+    assert (settings.get().rows, settings.get().cols) == (5, 5)

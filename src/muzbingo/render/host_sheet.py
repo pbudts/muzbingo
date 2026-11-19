@@ -15,6 +15,7 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from muzbingo.models import Game, Song
 from muzbingo.render.context import RenderError, format_date
+from muzbingo.i18n import _
 
 PAGE_SIZE, ORIENTATION = "A4", "portrait"
 
@@ -56,7 +57,7 @@ def ordered_songs(game: Game, order: HostOrder | str) -> list[Song]:
 def render_host_sheet(game: Game, order: HostOrder | str = HostOrder.PLAYLIST) -> str:
     """The host sheet as a self-contained HTML document."""
     if not game.playlist:
-        raise RenderError("The playlist is empty")
+        raise RenderError(_("The playlist is empty"))
     order = HostOrder(order)
     labels = LABELS.get(game.language, LABELS["en"])
     position = {song.id: n for n, song in enumerate(game.playlist, start=1)}

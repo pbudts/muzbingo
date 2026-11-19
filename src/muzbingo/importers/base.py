@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from muzbingo.models import Song
+from muzbingo.i18n import _
 
 TITLE_ALIASES = ("track name", "title", "song", "song title", "titel", "name", "naam")
 ARTIST_ALIASES = ("artist name(s)", "artist", "artists", "artist name", "artiest", "artiesten", "performer")
@@ -88,7 +89,7 @@ def rows_to_songs(
     index = {h: i for i, h in reversed(list(enumerate(headers)))}
     for column in (mapping.title, mapping.artist, mapping.id):
         if column is not None and column not in index:
-            raise PlaylistImportError(f"Column not found: {column!r}")
+            raise PlaylistImportError(_("Column not found: {column}").format(column=repr(column)))
 
     def cell(row: list[str], column: str | None) -> str:
         if column is None:
@@ -119,5 +120,5 @@ def rows_to_songs(
         songs.append(song)
 
     if not songs:
-        raise PlaylistImportError("No songs found in the file")
+        raise PlaylistImportError(_("No songs found in the file"))
     return ImportResult(songs=songs, mapping=mapping, headers=headers, warnings=warnings)

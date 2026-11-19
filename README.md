@@ -18,6 +18,9 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the design and roadmap.
   template to make your own, and the host sheet (the playlist as a checklist).
 - Phase 4 (host mode): done. The Host tab: tick off songs while playing, see which
   cards have one line / two lines / a full card, and check a card number.
+- Phase 5 (desktop & translation): done. `muzbingo` opens the app window; the UI is in
+  English and Dutch (switch in the top bar); new games start with the last used
+  template, grid and number of cards.
 
 ## Setup (development)
 
@@ -48,6 +51,17 @@ pytest
       libxcb-sync1 libxcb-util1 libxcb-xfixes0 libxcb-xkb1 \
       fonts-dejavu-core fonts-liberation
   ```
+
+## Using the app window
+
+```bash
+muzbingo                       # or: muzbingo app --data-dir ./testdata
+```
+
+Opens MuzBingo in its own window (no browser needed). Downloads (PDF, game files)
+ask where to save; links to other websites open in your normal browser. Closing the
+window stops the app. On a machine without a desktop it says so: use `muzbingo serve`
+there.
 
 ## Using the web UI
 
@@ -104,6 +118,23 @@ pytest
 
 The UI tests use NiceGUI's simulated user (`tests/test_ui.py`), so they need no browser.
 The PDF tests use Qt WebEngine offscreen.
+
+## Translations
+
+All UI text is written in English and wrapped in `_("…")`. The Dutch translation is
+`src/muzbingo/i18n/locale/nl/LC_MESSAGES/muzbingo.po`. After changing UI texts:
+
+```bash
+pybabel extract --no-location --sort-output -k _ -k ngettext:1,2 \
+    -o src/muzbingo/i18n/locale/muzbingo.pot src/muzbingo
+pybabel update -i src/muzbingo/i18n/locale/muzbingo.pot -d src/muzbingo/i18n/locale \
+    -D muzbingo --no-fuzzy-matching
+# translate the new entries in the .po file (Poedit or a text editor), then:
+pybabel compile -d src/muzbingo/i18n/locale -D muzbingo
+```
+
+`tests/test_i18n.py` fails when a text is missing from the Dutch catalog, when the
+`{placeholders}` differ, or when the compiled `.mo` file is out of date.
 
 ## Card templates
 

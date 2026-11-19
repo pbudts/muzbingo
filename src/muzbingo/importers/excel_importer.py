@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from muzbingo.importers.base import PlaylistImportError
+from muzbingo.i18n import _
 
 
 def _to_text(value: object) -> str:
@@ -21,10 +22,10 @@ def read_xlsx(path: str | Path, sheet: str | None = None) -> tuple[list[str], li
     try:
         workbook = load_workbook(Path(path), read_only=True, data_only=True)
     except Exception as exc:  # openpyxl raises several unrelated exception types
-        raise PlaylistImportError(f"Could not open the Excel file: {exc}") from exc
+        raise PlaylistImportError(_("Could not open the Excel file: {error}").format(error=exc)) from exc
     try:
         if sheet is not None and sheet not in workbook.sheetnames:
-            raise PlaylistImportError(f"Sheet not found: {sheet!r}")
+            raise PlaylistImportError(_("Sheet not found: {sheet}").format(sheet=repr(sheet)))
         worksheet = workbook[sheet] if sheet else workbook.worksheets[0]
         rows = [[_to_text(v) for v in row] for row in worksheet.iter_rows(values_only=True)]
     finally:
@@ -34,6 +35,6 @@ def read_xlsx(path: str | Path, sheet: str | None = None) -> tuple[list[str], li
     while rows and not any(c.strip() for c in rows[0]):
         rows.pop(0)
     if not rows:
-        raise PlaylistImportError("The sheet is empty")
+        raise PlaylistImportError(_("The sheet is empty"))
     headers = [h.strip() for h in rows[0]]
     return headers, rows[1:]

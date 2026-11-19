@@ -15,6 +15,7 @@ from pathlib import Path
 
 from muzbingo.models import Game, utc_now
 from muzbingo.storage import FILE_EXTENSION, StorageError, game_from_json, game_to_json, load_game, save_game
+from muzbingo.i18n import _
 
 _ID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 
@@ -91,7 +92,7 @@ class Library:
     def load(self, game_id: str) -> Game:
         path = self.path_for(game_id)
         if not path.is_file():
-            raise LibraryError("This game does not exist (anymore)")
+            raise LibraryError(_("This game does not exist (anymore)"))
         try:
             return load_game(path)
         except StorageError as exc:
@@ -118,7 +119,7 @@ class Library:
         """Copy a game (e.g. last year's party): new id, cards kept, played songs cleared."""
         game = self.load(game_id)
         game.id = str(uuid.uuid4())
-        game.title = f"{game.title} (copy)"
+        game.title = _("{title} (copy)").format(title=game.title)
         game.played = []
         game.created_at = utc_now()
         self.save(game)
@@ -143,7 +144,7 @@ class Library:
         """Move the game to the trash folder."""
         path = self.path_for(game_id)
         if not path.is_file():
-            raise LibraryError("This game does not exist (anymore)")
+            raise LibraryError(_("This game does not exist (anymore)"))
         self.trash.mkdir(parents=True, exist_ok=True)
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         os.replace(path, self.trash / f"{game_id}-{stamp}{FILE_EXTENSION}")

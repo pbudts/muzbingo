@@ -20,7 +20,8 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from muzbingo import paths
+from muzbingo import paths, settings
+from muzbingo.i18n import current_language
 from muzbingo.services import Library
 
 log = logging.getLogger(__name__)
@@ -50,7 +51,7 @@ def build_app(library: Library, pdf, token: str, *, check_host: bool):
     from fastapi import FastAPI
     from nicegui import ui
 
-    from muzbingo.ui.app import setup
+    from muzbingo.ui.app import QUASAR_LANGUAGES, setup
     from muzbingo.ui.auth import TokenAuthMiddleware
 
     fastapi_app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
@@ -61,6 +62,7 @@ def build_app(library: Library, pdf, token: str, *, check_host: bool):
         favicon="🎵",
         storage_secret=token,
         show_welcome_message=False,
+        language=QUASAR_LANGUAGES.get(current_language(), "en-GB"),  # run_with resets it otherwise
     )
     fastapi_app.add_middleware(TokenAuthMiddleware, token=token, check_host=check_host)
     return fastapi_app
@@ -78,6 +80,7 @@ def start_server(host: str, port: int, data_dir: Path | None = None) -> RunningS
     pdf = PdfService()
     if data_dir is not None:
         paths.set_data_dir(data_dir)  # games, user templates and settings all live there
+        settings.reset()
     library = Library(paths.games_dir())
     token = new_token()
     app = build_app(library, pdf, token, check_host=_is_loopback(host))
