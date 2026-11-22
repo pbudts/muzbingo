@@ -674,7 +674,8 @@ Share:     My games: Download → game.muzbingo (all data incl. pictures) → Im
   later; for now the Windows zip is built by hand.
 - **Files:** `packaging/muzbingo.spec` (PyInstaller), `packaging/muzbingo_main.py`
   (entry point), `packaging/build.py` (compiles translations, makes the `.ico`, runs
-  PyInstaller, adds `portable.txt` on Windows, makes the zip/tarball),
+  PyInstaller, collects the license texts, adds `portable.txt` on Windows, makes the
+  zip/tarball),
   `requirements-build.txt` (pinned build tools).
 - **Bundled files.** The spec bundles the `muzbingo` package data (card templates, the
   host sheet template, compiled translations, the icon). NiceGUI's web assets come
@@ -687,6 +688,13 @@ Share:     My games: Download → game.muzbingo (all data incl. pictures) → Im
 - **No console window.** The Windows build is a windowed app (`console=False`). In the
   app window, stdout/stderr and uncaught exceptions go to `<data folder>/logs/
   muzbingo.log` (rotating, `logs.py`).
+- **Licenses.** MuzBingo is GPL-3.0-or-later; the card templates and the host sheet
+  template are CC0-1.0, so printed cards carry no conditions. `build.py` puts
+  `LICENSE.txt`, `THIRD-PARTY-NOTICES.txt` and `licenses/` in the app folder: the
+  license files from each package's `.dist-info` (packages from `requirements.txt`),
+  Python's license, and for Qt (whose wheels ship no license texts) the LGPL-3.0 from
+  `packaging/licenses/` plus a notice with the source links. Chromium's own list is
+  linked from Qt's documentation rather than copied.
 - **Single instance.** The first window listens on a local socket (`QLocalServer`, a
   named pipe on Windows) named after the user and data folder. A second start asks it
   to come to the front and exits (`desktop/single_instance.py`). A copy with another

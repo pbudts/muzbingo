@@ -153,6 +153,9 @@ steps with `source .venv/bin/activate` and `python packaging/build.py`. This mak
   data folder.
 - The built app is a window app; for the command-line tools (`serve`, `pdf`, …) run
   MuzBingo from source.
+- The app folder contains `LICENSE.txt`, `THIRD-PARTY-NOTICES.txt` and a `licenses`
+  folder with the license texts of everything bundled (Python, Qt, the Python
+  packages). `build.py` collects them; keep them in the zip when you share it.
 
 ## Translations
 
@@ -189,3 +192,40 @@ button next to "Card template" (Settings tab), or run
 
 Edit the files of the copy; the card preview in the app shows the result when you
 switch tabs or pages. `muzbingo templates` lists what's available and where.
+
+## Before you play: music rights and gambling rules
+
+MuzBingo only makes the cards. It doesn't play, include or license any music. Before you
+host a music bingo, check what applies where you play:
+
+- **Playing music in public.** Playing recorded music at an event, in a café, club,
+  school or company party usually needs a license from the music rights organisations
+  (in Belgium: Unisono, for SABAM and PlayRight; in the Netherlands: Buma/Stemra and
+  Sena). A personal streaming subscription, such as Spotify, covers private listening
+  only, not public events. The venue may already have a license.
+- **Prizes and stakes.** A bingo where players pay to take part and can win prizes can
+  count as a game of chance under gambling law (in Belgium: the Gaming Commission; in
+  the Netherlands: the Kansspelautoriteit). Small games for charity or among friends are
+  often exempt or need only a simple permit, but the rules differ per country and
+  municipality.
+
+This is general information, not legal advice. As the organiser, you are responsible
+for following the rules that apply to your event.
+
+MuzBingo is not affiliated with or endorsed by Spotify. "Spotify" is a trademark of
+Spotify AB; MuzBingo only reads the CSV files that playlist export tools make.
+
+## License
+
+MuzBingo is free software: you can redistribute it and/or modify it under the terms of
+the GNU General Public License as published by the Free Software Foundation, either
+version 3 of the License, or (at your option) any later version. It is distributed
+WITHOUT ANY WARRANTY; see [LICENSE](LICENSE) for the details.
+
+The card templates in `src/muzbingo/templates/` and the host sheet template
+(`src/muzbingo/render/host_sheet.html.j2`) are dedicated to the public domain under
+[CC0 1.0](src/muzbingo/templates/LICENSE). The cards and host sheets you print, and
+templates you make from a copy, carry no license conditions.
+
+MuzBingo uses Qt and Qt for Python (PySide6) under the LGPL-3.0, NiceGUI and other open
+source packages; the built app lists them in `THIRD-PARTY-NOTICES.txt`.
