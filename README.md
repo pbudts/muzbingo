@@ -7,6 +7,31 @@ the cards to PDF from an editable HTML template.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the design and roadmap.
 
+## Screenshots
+
+**Cards:** generate the cards, preview each one and download them as a PDF.
+
+![The Cards tab with a preview of card 1](docs/screenshots/cards.png)
+
+**My games:** all your games in one place. Open, duplicate, download or delete them.
+
+![The My games list](docs/screenshots/library.png)
+
+**Settings:** title, date and language for the event, the grid and number of cards,
+and the card template with your own logo and background.
+
+![The Settings tab](docs/screenshots/settings.png)
+
+**Playlist:** import a Spotify CSV export or an Excel sheet. Shorten long titles; the
+original text stays saved.
+
+![The Playlist tab](docs/screenshots/playlist.png)
+
+**Host:** tick off songs while you play. See which cards have one line, two lines or a
+full card, and check a card number.
+
+![The Host tab during a game](docs/screenshots/host.png)
+
 ## Status
 
 - Phase 1 (core + command-line tool): done.
@@ -40,11 +65,12 @@ pytest
 - **Linux system packages.** On Debian/Ubuntu, `python3 -m venv` needs `python3-venv`.
   Qt also needs system libraries for graphics and for the PDF engine, plus some fonts.
   Desktop installs usually have these already; minimal installs, servers and WSL
-  often don't:
+  often don't. After installing, `ldd .venv/lib/python3*/site-packages/PySide6/Qt/lib/*.so* | grep "not found"`
+  should print nothing:
 
   ```bash
-  sudo apt install python3.12-venv \
-      libgl1 libegl1 libgbm1 libasound2t64 libxkbcommon-x11-0 libxkbfile1 \
+  sudo apt install python3-venv \
+      libgl1 libegl1 libgbm1 libfontconfig1 libnss3 libasound2t64 libxkbcommon-x11-0 libxkbfile1 \
       libx11-xcb1 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libxtst6 \
       libxcb-cursor0 libxcb-dri3-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 \
       libxcb-randr0 libxcb-render0 libxcb-render-util0 libxcb-shape0 libxcb-shm0 \
