@@ -229,6 +229,8 @@ MuzBingo is free software: you can redistribute it and/or modify it under the te
 the GNU General Public License as published by the Free Software Foundation, either
 version 3 of the License, or (at your option) any later version. It is distributed
 WITHOUT ANY WARRANTY; see [LICENSE](LICENSE) for the details.
+This license applies to all versions of the code in this repository, including earlier
+commits.
 
 The card templates in `src/muzbingo/templates/` and the host sheet template
 (`src/muzbingo/render/host_sheet.html.j2`) are dedicated to the public domain under
