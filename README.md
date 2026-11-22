@@ -198,22 +198,30 @@ switch tabs or pages. `muzbingo templates` lists what's available and where.
 MuzBingo only makes the cards. It doesn't play, include or license any music. Before you
 host a music bingo, check what applies where you play:
 
-- **Playing music in public.** Playing recorded music at an event, in a café, club,
-  school or company party usually needs a license from the music rights organisations
-  (in Belgium: Unisono, for SABAM and PlayRight; in the Netherlands: Buma/Stemra and
-  Sena). A personal streaming subscription, such as Spotify, covers private listening
-  only, not public events. The venue may already have a license.
-- **Prizes and stakes.** A bingo where players pay to take part and can win prizes can
-  count as a game of chance under gambling law (in Belgium: the Gaming Commission; in
-  the Netherlands: the Kansspelautoriteit). Small games for charity or among friends are
-  often exempt or need only a simple permit, but the rules differ per country and
-  municipality.
+- **Playing music in public.** In most countries, playing recorded music in public (at
+  an event, in a café, club or school, at a company party) needs a license from a music
+  rights organisation, such as a collecting society for songwriters and one for
+  performers and record labels. A personal streaming subscription, such as Spotify,
+  usually covers private listening only. The venue may already have a license.
+- **Prizes and stakes.** In many places, a bingo where players pay to take part and can
+  win prizes counts as a game of chance under gambling or lottery law. Small games for
+  charity or among friends are often exempt or need only a simple permit, but the rules
+  differ per country, region and even municipality.
 
 This is general information, not legal advice. As the organiser, you are responsible
 for following the rules that apply to your event.
 
 MuzBingo is not affiliated with or endorsed by Spotify. "Spotify" is a trademark of
 Spotify AB; MuzBingo only reads the CSV files that playlist export tools make.
+
+## About this code
+
+Most of MuzBingo's code was written with an AI coding assistant (Claude, by Anthropic).
+I reviewed it in general terms and tested it, but I have not checked every line. Use
+it at your own risk: MuzBingo is provided "as is", without warranty of any kind, and I
+am not responsible or liable for how it is used or for any damage or loss from using
+it (see also sections 15 and 16 of the [LICENSE](LICENSE)). Bug reports and fixes are
+welcome.
 
 ## License
 
