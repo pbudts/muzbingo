@@ -16,3 +16,6 @@ htmlcov/
 
 # Local test data (muzbingo serve --data-dir ./testdata)
 testdata/
+
+# Claude Code instructions (local only)
+CLAUDE.md
