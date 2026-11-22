@@ -5,32 +5,35 @@ matching artist + title on their card. MuzBingo imports a Spotify CSV export or 
 Excel sheet, generates randomized cards (e.g. 4×5 or 5×5), saves the game, and prints
 the cards to PDF from an editable HTML template.
 
+For end users: [user manual](docs/user-manual.md) (English) and
+[gebruikershandleiding](docs/gebruikershandleiding.md) (Nederlands).
+
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the design and roadmap.
 
 ## Screenshots
 
 **Cards:** generate the cards, preview each one and download them as a PDF.
 
-![The Cards tab with a preview of card 1](docs/screenshots/cards.png)
+![The Cards tab with a preview of card 1](docs/screenshots/en/cards.png)
 
 **My games:** all your games in one place. Open, duplicate, download or delete them.
 
-![The My games list](docs/screenshots/library.png)
+![The My games list](docs/screenshots/en/library.png)
 
 **Settings:** title, date and language for the event, the grid and number of cards,
 and the card template with your own logo and background.
 
-![The Settings tab](docs/screenshots/settings.png)
+![The Settings tab](docs/screenshots/en/settings.png)
 
 **Playlist:** import a Spotify CSV export or an Excel sheet. Shorten long titles; the
 original text stays saved.
 
-![The Playlist tab](docs/screenshots/playlist.png)
+![The Playlist tab](docs/screenshots/en/playlist.png)
 
 **Host:** tick off songs while you play. See which cards have one line, two lines or a
 full card, and check a card number.
 
-![The Host tab during a game](docs/screenshots/host.png)
+![The Host tab during a game](docs/screenshots/en/host.png)
 
 ## Status
 
